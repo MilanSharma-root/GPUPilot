@@ -292,4 +292,5 @@ python -m uvicorn main:app --reload --port 8000
 
 Then open the dashboard and click **Scan for Updates**. The backend uses TinyFish Search (`https://api.search.tinyfish.ai/`) with the `X-API-Key` header. If no key is configured or a search fails, it reports that explicitly and does not invent update findings. A candidate update must be reviewed against official release notes and compatibility requirements before changing any real environment.
 #   G P U P i l o t - f i n a l  
+ #   G P U P i l o t  
  
