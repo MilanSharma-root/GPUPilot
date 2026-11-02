@@ -682,6 +682,7 @@ function SimulationDashboard() {
             <div><span className="quality-eyebrow">MODEL VALIDATION</span><h2>Precision Quality Gate</h2><p>Evaluate whether INT8 maintains acceptable model quality against the FP16 baseline.</p></div>
             <span className={`quality-pill ${quality?.result === 'PASS' ? 'pass' : quality?.result === 'FAIL' ? 'fail' : ''}`}>{quality?.result || 'NOT RUN'}</span>
           </div>
+          {error && <div className="error-banner"><AlertTriangle size={17}/><span>Quality evaluation: {error}</span><button onClick={evaluateQuality}>Retry</button></div>}
           <div className="quality-summary-grid">
             <div className="quality-summary-card"><span>Gate status</span><strong className={quality?.result === 'PASS' ? 'quality-good' : quality?.result === 'FAIL' ? 'quality-bad' : ''}>{quality?.result || 'Pending'}</strong><small>{quality ? 'Latest evaluation' : 'Run an evaluation to generate a decision'}</small></div>
             <div className="quality-summary-card"><span>Quality degradation</span><strong>{quality ? `${fmt(quality.quality_degradation_percentage_points, 2)} pp` : '—'}</strong><small>FP16 baseline vs INT8 candidate</small></div>
