@@ -258,3 +258,46 @@ footer{text-align:center;color:#7c8797;font-size:9px;padding:6px 0 20px}
 .mode-primary-button:hover{background:#07966f}
 .mode-footer{text-align:center;color:#6f8097;font-size:10px;padding:0 0 22px}
 @media(max-width:760px){.mode-screen{padding:0 20px}.mode-topbar{height:72px}.mode-topbar-note{font-size:8px;letter-spacing:.8px}.mode-hero{padding:54px 0 30px}.mode-hero h1{letter-spacing:-1.2px}.mode-hero p{font-size:13px;line-height:1.6}.mode-options{grid-template-columns:1fr;gap:14px}.mode-option{min-height:0;padding:22px}.mode-option-copy{margin-top:20px}.mode-option h2{font-size:24px}.mode-bottom-note{flex-direction:column;text-align:center;margin-top:25px;font-size:8px}.coming-soon-card{padding:36px 22px}.coming-soon-card h1{font-size:27px}.mode-back-button{padding:9px 10px;font-size:11px}}
+
+
+/* Dedicated Quality Gate page */
+.main-content.quality>.error-banner,
+.main-content.quality>.anomaly-panel,
+.main-content.quality>.environment-monitor,
+.main-content.quality>.kpi-grid,
+.main-content.quality>.optimization-card,
+.main-content.quality>.metrics-panel,
+.main-content.quality>.quality-panel,
+.main-content.quality>.sustainability,
+.main-content.quality>.bottom-grid,
+.main-content.quality>.decision-panel,
+.main-content.quality>.control-panel,
+.main-content.quality>.settings-panel,
+.main-content.quality>footer{display:none}
+.quality-page{display:grid;gap:14px;padding-bottom:24px}
+.quality-page-heading{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e0e5eb;border-radius:8px;padding:22px 24px}
+.quality-eyebrow{font-size:10px;font-weight:800;letter-spacing:1.2px;color:#0b8b67}
+.quality-page-heading h2{font-size:21px;margin:7px 0 4px;color:#14213d}
+.quality-page-heading p{margin:0;color:#6b788d;font-size:12px}
+.quality-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.quality-summary-card{background:#fff;border:1px solid #e0e5eb;border-radius:8px;padding:17px 19px}
+.quality-summary-card span,.quality-summary-card small{display:block;color:#6b788d;font-size:11px}
+.quality-summary-card strong{display:block;color:#14213d;font-size:24px;margin:8px 0 4px}
+.quality-good,.quality-check-row b.pass,.quality-history-row b.pass{color:#078653!important}
+.quality-bad,.quality-check-row b.fail,.quality-history-row b.fail{color:#c83232!important}
+.quality-evaluation-panel,.quality-checks-panel,.quality-history-panel{padding:18px 20px}
+.quality-evaluation-panel h3,.quality-checks-panel h3,.quality-history-panel h3{margin:0;color:#14213d;font-size:15px}
+.quality-check-list,.quality-history-list{border-top:1px solid #e8edf1}
+.quality-check-row{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #edf0f3}
+.quality-check-icon{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;font-weight:800;background:#f0f2f5;color:#7b8797;flex:none}
+.quality-check-icon.pass{background:#e3f6eb;color:#078653}.quality-check-icon.fail{background:#fff0f0;color:#c83232}
+.quality-check-row div{flex:1}.quality-check-row strong,.quality-history-row strong{display:block;color:#1c2a43;font-size:12px}.quality-check-row small,.quality-history-row small{display:block;color:#788498;font-size:10px;margin-top:4px}
+.quality-check-row>b,.quality-history-row>b{font-size:10px;letter-spacing:.4px}
+.quality-check-row b.pending{color:#7b8797}.quality-check-icon.pending{background:#f0f2f5}
+.quality-decision-note{margin-top:13px;padding:12px 14px;border-radius:6px;background:#f1faf5;border:1px solid #d4ecdf;color:#08784d}
+.quality-decision-note.fail{background:#fff5f5;border-color:#f0dcdc;color:#b52b2b}
+.quality-decision-note p{font-size:12px;margin:5px 0;line-height:1.5}.quality-decision-note small{font-size:10px;color:#738095}
+.quality-history-row{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid #edf0f3;font-size:11px;color:#52627a}
+.quality-history-empty{padding:20px 0;color:#7a8799;font-size:11px}
+.main-content.quality .page-header{border-bottom:1px solid #e1e6eb;margin-bottom:17px}
+@media(max-width:850px){.quality-summary-grid{grid-template-columns:1fr}.quality-history-row{grid-template-columns:1fr 1fr}.quality-page-heading{align-items:flex-start;gap:10px}}
