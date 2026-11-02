@@ -839,14 +839,10 @@ function SimulationDashboard() {
 function App() {
   const [mode, setMode] = useState(null);
 
-  const returnToSelection = async () => {
-    // Stop the simulator cleanly when leaving Simulation Mode.
-    try {
-      await api('/simulation/stop', { method: 'POST' });
-    } catch {
-      // The mode selector remains usable even if the backend is offline.
-    }
+  const returnToSelection = () => {
+    // Return immediately; stop the simulator in the background if the API is available.
     setMode(null);
+    api('/simulation/stop', { method: 'POST' }).catch(() => {});
   };
 
   if (mode === 'simulation') {
