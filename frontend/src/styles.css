@@ -301,3 +301,13 @@ footer{text-align:center;color:#7c8797;font-size:9px;padding:6px 0 20px}
 .quality-history-empty{padding:20px 0;color:#7a8799;font-size:11px}
 .main-content.quality .page-header{border-bottom:1px solid #e1e6eb;margin-bottom:17px}
 @media(max-width:850px){.quality-summary-grid{grid-template-columns:1fr}.quality-history-row{grid-template-columns:1fr 1fr}.quality-page-heading{align-items:flex-start;gap:10px}}
+
+
+/* Quality Gate is intentionally isolated from dashboard telemetry and SLA alerts. */
+.main-content.quality [class*="sla" i],
+.main-content.quality [id*="sla" i] {
+  display: none !important;
+}
+body:has(.main-content.quality) .mode-switch-floating {
+  display: none !important;
+}
