@@ -91,7 +91,7 @@ function SimulationDashboard() {
 
   const [range, setRange] = useState(30)
 
-  const initialPage = ['dashboard','optimization','alerts','hardware','settings','sustainability','fleet','workloads','analytics'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
+  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
   const [activeNav, setActiveNav] = useState(initialPage)
   const [activePage, setActivePage] = useState(initialPage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
@@ -101,6 +101,7 @@ function SimulationDashboard() {
   const [interval, setIntervalValue] = useState(1)
 
   const [quality, setQuality] = useState(null)
+  const [qualityHistory, setQualityHistory] = useState([])
 
   const [qualityThreshold, setQualityThreshold] = useState(2)
   const [anomalyToast, setAnomalyToast] = useState(null)
@@ -132,7 +133,7 @@ function SimulationDashboard() {
   useEffect(() => {
     const syncRoute = () => {
       const key = window.location.hash.slice(1)
-      const next = ['dashboard','optimization','alerts','hardware','settings','sustainability','fleet','workloads','analytics'].includes(key) ? key : 'dashboard'
+      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(key) ? key : 'dashboard'
       setActivePage(next)
       setActiveNav(next)
     }
@@ -236,6 +237,7 @@ function SimulationDashboard() {
   const evaluateQuality = () => run(async () => {
     const result = await api('/quality/evaluate', { method: 'POST', body: JSON.stringify({ reference_precision: 'FP16', candidate_precision: 'INT8', allowed_degradation_pct: Number(qualityThreshold) }) })
     setQuality(result)
+    setQualityHistory(items => [{ id: `${Date.now()}`, result: result.result || 'UNKNOWN', degradation: result.quality_degradation_percentage_points, threshold: result.allowed_degradation_percentage_points, reason: result.reason, evaluatedAt: new Date().toISOString() }, ...items].slice(0, 10))
   })
 
   const toggleAutopilot = () => run(() =>
@@ -382,6 +384,7 @@ function SimulationDashboard() {
     ['fleet', 'GPU Fleet', Server],
     ['workloads', 'AI Workloads', Bot],
     ['analytics', 'Analytics & History', History],
+    ['workspace', 'Workspace', Settings],
   ]
 
   const pageTitles = {
@@ -399,9 +402,15 @@ function SimulationDashboard() {
 
   const go = (key) => {
     setActiveNav(key)
-    setActivePage(key)
-    window.location.hash = key
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (key === 'fleet') {
+      setActivePage('dashboard')
+      window.location.hash = 'dashboard'
+      requestAnimationFrame(() => document.getElementById('gpu-fleet')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    } else {
+      setActivePage(key)
+      window.location.hash = key
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
 
@@ -479,9 +488,9 @@ function SimulationDashboard() {
 
           <div>
 
-            <h1>{pageTitles[activePage]?.[0] || 'Dashboard'}</h1>
+            <h1>{pageTitles[activePage]?.[0] || (activePage === 'workspace' ? 'Secondary Workspace' : 'Dashboard')}</h1>
 
-            <p>{pageTitles[activePage]?.[1] || 'Live infrastructure health and autonomous optimization'}</p>
+            <p>{pageTitles[activePage]?.[1] || (activePage === 'workspace' ? 'Workloads, decision history, and configuration settings' : 'Live infrastructure health and autonomous optimization')}</p>
 
           </div>
 
@@ -708,25 +717,42 @@ function SimulationDashboard() {
 
 
 
-        <section className="panel quality-panel" id="precision-quality">
-          <div className="panel-header">
-            <div><h2>FP16 vs INT8 Quality Gate</h2><p>Simulated quality evaluation · no real model or dataset is loaded</p></div>
-            <span className={`quality-pill ${(quality?.result || 'READY') === 'PASS' ? 'pass' : (quality?.result === 'FAIL' ? 'fail' : '')}`}>{quality?.result || 'READY'}</span>
+        {activePage === 'quality' && <section className="quality-page">
+          <div className="quality-page-heading">
+            <div><span className="quality-eyebrow">MODEL VALIDATION</span><h2>Precision Quality Gate</h2><p>Evaluate whether INT8 maintains acceptable model quality against the FP16 baseline.</p></div>
+            <span className={`quality-pill ${quality?.result === 'PASS' ? 'pass' : quality?.result === 'FAIL' ? 'fail' : ''}`}>{quality?.result || 'NOT RUN'}</span>
           </div>
-          <div className="quality-controls">
-            <label>Allowed degradation (percentage points)
-              <input type="number" min="0" max="100" step="0.1" value={qualityThreshold} onChange={e => setQualityThreshold(e.target.value)} />
-            </label>
-            <button onClick={evaluateQuality} disabled={busy}>Evaluate FP16 → INT8</button>
+          {error && <div className="error-banner"><AlertTriangle size={17}/><span>Quality evaluation: {error}</span><button onClick={evaluateQuality}>Retry</button></div>}
+          <div className="quality-summary-grid">
+            <div className="quality-summary-card"><span>Gate status</span><strong className={quality?.result === 'PASS' ? 'quality-good' : quality?.result === 'FAIL' ? 'quality-bad' : ''}>{quality?.result || 'Pending'}</strong><small>{quality ? 'Latest evaluation' : 'Run an evaluation to generate a decision'}</small></div>
+            <div className="quality-summary-card"><span>Quality degradation</span><strong>{quality ? `${fmt(quality.quality_degradation_percentage_points, 2)} pp` : '—'}</strong><small>FP16 baseline vs INT8 candidate</small></div>
+            <div className="quality-summary-card"><span>Allowed degradation</span><strong>{quality ? `${fmt(quality.allowed_degradation_percentage_points, 2)} pp` : `${fmt(qualityThreshold, 1)} pp`}</strong><small>Configured acceptance threshold</small></div>
           </div>
-          {quality && <div className="quality-results">
-            <div><span>FP16 baseline</span><strong>{fmt(quality.baseline_quality_score, 2)}</strong></div>
-            <div><span>INT8 candidate</span><strong>{fmt(quality.candidate_quality_score, 2)}</strong></div>
-            <div><span>Degradation</span><strong>{fmt(quality.quality_degradation_percentage_points, 2)} pp</strong></div>
-            <div><span>Threshold</span><strong>{fmt(quality.allowed_degradation_percentage_points, 2)} pp</strong></div>
-            <p>{quality.reason} <small>{quality.disclaimer}</small></p>
-          </div>}
-        </section>
+          <div className="panel quality-evaluation-panel">
+            <div className="panel-header"><div><h3>Run Quality Evaluation</h3><p>Uses the existing backend quality evaluation endpoint.</p></div></div>
+            <div className="quality-controls">
+              <label>Allowed degradation (percentage points)
+                <input type="number" min="0" max="100" step="0.1" value={qualityThreshold} onChange={e => setQualityThreshold(e.target.value)} />
+              </label>
+              <button onClick={evaluateQuality} disabled={busy || qualityThreshold === '' || Number(qualityThreshold) < 0 || Number(qualityThreshold) > 100}>{busy ? 'Evaluating…' : 'Evaluate FP16 → INT8'}</button>
+            </div>
+          </div>
+          <div className="panel quality-checks-panel">
+            <div className="panel-header"><div><h3>Validation Checks</h3><p>Checks are populated from the latest backend evaluation.</p></div></div>
+            <div className="quality-check-list">
+              {[
+                {label:'FP16 baseline available',ok:!!quality && Number.isFinite(Number(quality.baseline_quality_score)),detail:quality ? `Baseline score: ${fmt(quality.baseline_quality_score, 2)}` : 'Awaiting evaluation'},
+                {label:'INT8 candidate available',ok:!!quality && Number.isFinite(Number(quality.candidate_quality_score)),detail:quality ? `Candidate score: ${fmt(quality.candidate_quality_score, 2)}` : 'Awaiting evaluation'},
+                {label:'Quality degradation within threshold',ok:quality?.result === 'PASS',detail:quality ? `${fmt(quality.quality_degradation_percentage_points, 2)} pp observed · ${fmt(quality.allowed_degradation_percentage_points, 2)} pp allowed` : 'Awaiting evaluation'}
+              ].map((check,i)=><div className="quality-check-row" key={check.label}><span className={`quality-check-icon ${!quality ? 'pending' : check.ok ? 'pass' : 'fail'}`}>{!quality ? '–' : check.ok ? '✓' : '!'}</span><div><strong>{check.label}</strong><small>{check.detail}</small></div><b className={!quality ? 'pending' : check.ok ? 'pass' : 'fail'}>{!quality ? 'PENDING' : check.ok ? 'PASS' : 'FAIL'}</b></div>)}
+            </div>
+            {quality?.reason && <div className={`quality-decision-note ${quality.result === 'PASS' ? 'pass' : 'fail'}`}><strong>{quality.result === 'PASS' ? 'Gate passed' : 'Gate failed'}</strong><p>{quality.reason}</p>{quality.disclaimer && <small>{quality.disclaimer}</small>}</div>}
+          </div>
+          <div className="panel quality-history-panel">
+            <div className="panel-header"><div><h3>Validation History</h3><p>Recent quality gate evaluations in this session.</p></div><span>{qualityHistory.length} runs</span></div>
+            {qualityHistory.length ? <div className="quality-history-list">{qualityHistory.map(item=><div className="quality-history-row" key={item.id}><div><strong>{item.result}</strong><small>{new Date(item.evaluatedAt).toLocaleString()}</small></div><span>{fmt(item.degradation,2)} pp degradation</span><span>{fmt(item.threshold,2)} pp threshold</span><b className={item.result === 'PASS' ? 'pass' : 'fail'}>{item.result}</b></div>)}</div> : <div className="quality-history-empty">No validation runs yet. Run an evaluation to create the first history entry.</div>}
+          </div>
+        </section>}
 
 
         <section className="sustainability panel">
