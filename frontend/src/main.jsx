@@ -812,8 +812,7 @@ function SimulationDashboard() {
 
                 {metric === 'power' && Number.isFinite(Number(opt?.recommended_estimate?.total_power)) && Number(opt?.recommended_estimate?.total_power) > 0 && (
                   <ReferenceLine y={Number(opt.recommended_estimate.total_power)} stroke="#64748b" strokeDasharray="6 5" strokeWidth={2} label={{ value: 'Target', position: 'insideTopRight', fill: '#64748b', fontSize: 11 }} />
-                  </>
-        )}
+                )}
 
                 {metric === 'temperature' && Number.isFinite(Number(data?.sla?.configuration?.max_temperature_c)) && Number(data?.sla?.configuration?.max_temperature_c) > 0 && (
                   <ReferenceLine y={Number(data.sla.configuration.max_temperature_c)} stroke="#64748b" strokeDasharray="6 5" strokeWidth={2} label={{ value: 'Target / SLA limit', position: 'insideTopRight', fill: '#64748b', fontSize: 11 }} />
