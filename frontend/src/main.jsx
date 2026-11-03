@@ -429,7 +429,7 @@ function SimulationDashboard() {
           <div className="brand-mark"><Leaf size={27} strokeWidth={2.3}/></div>
 
           <div className="brand-copy"><div className="brand-name">GPUPilot</div><div className="brand-sub">Sustainable AI Infrastructure</div></div>
-          <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}>{sidebarCollapsed ? '›' : '‹'}</button>
+          
 
         </div>
 
