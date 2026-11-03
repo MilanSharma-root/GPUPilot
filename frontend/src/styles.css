@@ -1084,3 +1084,78 @@ body:has(.main-content.quality) .mode-switch-floating {
 .monitoring-empty{padding:24px 8px;text-align:center;font-size:11px;color:#8290a2}
 @media(max-width:900px){.monitoring-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.monitoring-content-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.monitoring-hero{align-items:flex-start;flex-direction:column}.monitoring-event{grid-template-columns:9px minmax(0,1fr)}.monitoring-event time{grid-column:2;text-align:left}}
+
+
+/* Keep Autonomous Mode and Switch Mode in the expanded controls panel only.
+   The compact rail should show navigation and clean action icons, not clipped toggles. */
+.sidebar.collapsed:not(:hover) .health-card .autonomous-row,
+.sidebar.collapsed:not(:hover) .health-card .switch-mode-sidebar{
+  display:none !important;
+}
+.sidebar.collapsed:hover .health-card .autonomous-row,
+.sidebar.expanded .health-card .autonomous-row{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:6px 4px;
+  border-radius:8px;
+  background:rgba(255,255,255,.035);
+}
+.sidebar.collapsed:hover .health-card .autonomous-row>svg,
+.sidebar.expanded .health-card .autonomous-row>svg{
+  flex:0 0 17px;
+  width:17px;
+  height:17px;
+}
+.sidebar.collapsed:hover .health-card .autonomous-row .toggle,
+.sidebar.expanded .health-card .autonomous-row .toggle{
+  margin-left:auto;
+  flex:0 0 36px;
+  width:36px;
+  height:20px;
+  border-radius:999px;
+  background:#64748b;
+  padding:2px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  transition:background .18s ease;
+}
+.sidebar.collapsed:hover .health-card .autonomous-row .toggle.on,
+.sidebar.expanded .health-card .autonomous-row .toggle.on{
+  background:#10a879;
+  justify-content:flex-end;
+}
+.sidebar.collapsed:hover .health-card .autonomous-row .toggle i,
+.sidebar.expanded .health-card .autonomous-row .toggle i{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.sidebar.collapsed:hover .health-card .switch-mode-sidebar,
+.sidebar.expanded .health-card .switch-mode-sidebar{
+  min-height:36px;
+  margin-top:8px;
+  border-radius:8px;
+  border:1px solid #405775;
+  background:#203653;
+  color:#f5f8fc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+.sidebar.collapsed:hover .health-card .switch-mode-sidebar:hover,
+.sidebar.expanded .health-card .switch-mode-sidebar:hover{
+  background:#2b4669;
+  border-color:#58769c;
+}
+.sidebar.collapsed:hover .health-card .switch-mode-sidebar>svg,
+.sidebar.expanded .health-card .switch-mode-sidebar>svg{
+  flex:0 0 16px;
+  width:16px;
+  height:16px;
+}
