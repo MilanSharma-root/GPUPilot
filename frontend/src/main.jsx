@@ -376,15 +376,17 @@ function SimulationDashboard() {
   const nav = [
     ['dashboard', 'Dashboard', LayoutDashboard],
     ['optimization', 'Optimization Center', Cpu],
-    ['quality', 'Quality Gate', ShieldCheck],
-    ['alerts', 'SLA & Alerts', AlertTriangle],
-    ['hardware', 'Hardware & Software Monitor', MonitorCog],
-    ['settings', 'Settings', SlidersHorizontal],
-    ['sustainability', 'Sustainability', Leaf],
     ['fleet', 'GPU Fleet', Server],
-    ['workloads', 'AI Workloads', Bot],
+    ['quality', 'Quality Gate', ShieldCheck],
+    ['alerts', 'Monitoring & Alerts', Activity],
     ['analytics', 'Analytics & History', History],
-    ['workspace', 'Workspace', Settings],
+    ['settings', 'Settings', SlidersHorizontal],
+  ]
+
+  const secondaryNav = [
+    ['workloads', 'AI Workloads', Bot],
+    ['hardware', 'Hardware & Software Monitor', MonitorCog],
+    ['sustainability', 'Sustainability', Leaf],
   ]
 
   const pageTitles = {
@@ -434,7 +436,7 @@ function SimulationDashboard() {
 
         <nav className="side-nav">
 
-          {nav.map(([key, label, Icon, id]) => (
+          {nav.map(([key, label, Icon]) => (
 
             <button key={key} title={label} aria-label={label} className={`nav-item ${activeNav === key ? 'active' : ''}`} onClick={() => go(key)}>
 
@@ -444,7 +446,22 @@ function SimulationDashboard() {
 
           ))}
 
-
+          <div className="nav-secondary-group">
+            <button
+              type="button"
+              className={`nav-item nav-more-toggle ${secondaryNav.some(([key]) => activeNav === key) ? 'active' : ''}`}
+              aria-expanded={secondaryNav.some(([key]) => activeNav === key)}
+              title="More tools"
+              onClick={() => go(secondaryNav.some(([key]) => activeNav === key) ? 'analytics' : 'workloads')}
+            >
+              <Settings size={19}/><span>More Tools</span><ChevronDown size={15}/>
+            </button>
+            {secondaryNav.map(([key, label, Icon]) => (
+              <button key={key} title={label} aria-label={label} className={`nav-item nav-subitem ${activeNav === key ? 'active' : ''}`} onClick={() => go(key)}>
+                <Icon size={17}/><span>{label}</span>
+              </button>
+            ))}
+          </div>
 
         </nav>
 
