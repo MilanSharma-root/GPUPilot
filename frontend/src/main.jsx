@@ -430,7 +430,7 @@ function SimulationDashboard() {
 
         <div className="brand">
 
-          <div className="brand-mark"><Leaf size={27} strokeWidth={2.3}/></div>
+          <div className="brand-mark"><img src="/gpupilot-logo.svg" alt="GPUPilot logo" /></div>
 
           <div className="brand-copy"><div className="brand-name">GPUPilot</div><div className="brand-sub">Sustainable AI Infrastructure</div></div>
           
