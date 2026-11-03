@@ -505,6 +505,44 @@ function SimulationDashboard({ onSwitchMode }) {
 
         </header>
 
+        {activePage === 'alerts' && (
+          <section className="monitoring-page">
+            <div className="monitoring-hero">
+              <div><span className="eyebrow">SYSTEM OBSERVABILITY</span><h2>SLA &amp; Alert Center</h2><p>Track service-level compliance, telemetry anomalies and recent controller events in one place.</p></div>
+              <span className={`monitoring-overall ${slaPass ? 'healthy' : slaStatusAvailable ? 'attention' : 'unknown'}`}><i/>{!slaStatusAvailable ? 'Awaiting SLA data' : slaPass ? 'SLA Compliant' : 'SLA Breached'}</span>
+            </div>
+            <div className="monitoring-summary-grid">
+              <article className={`monitoring-stat ${p95State}`}><span>P95 Latency</span><strong>{p95Available ? fmt(p95Latency,1) : '—'} <small>ms</small></strong><p>Configured limit: {Number.isFinite(p95Limit) ? fmt(p95Limit,1) + ' ms' : 'Not available'}</p></article>
+              <article className="monitoring-stat"><span>Throughput</span><strong>{fmt(telemetry?.throughput ?? telemetry?.request_rate)} <small>req/min</small></strong><p>Live serving throughput</p></article>
+              <article className="monitoring-stat"><span>GPU Temperature</span><strong>{fmt(telemetry?.temperature,1)} <small>°C</small></strong><p>Current average temperature</p></article>
+              <article className="monitoring-stat"><span>Telemetry Anomaly</span><strong className="monitoring-anomaly-value">{data?.anomaly?.status || 'WAITING'}</strong><p>{data?.anomaly?.severity ? `Severity: ${data.anomaly.severity}` : 'Anomaly detector status'}</p></article>
+            </div>
+            <div className="monitoring-content-grid">
+              <section className="monitoring-card">
+                <div className="monitoring-card-head"><div><h3><ShieldCheck size={17}/> SLA Compliance</h3><p>Backend-reported service-level evaluation</p></div><span className={`monitoring-result-pill ${slaPass ? 'pass' : slaStatusAvailable ? 'fail' : 'pending'}`}>{data?.sla?.status || 'PENDING'}</span></div>
+                <div className="monitoring-sla-row"><span>P95 latency</span><strong>{p95Available ? `${fmt(p95Latency,1)} / ${fmt(p95Limit,1)} ms` : 'No data'}</strong><span className={p95State}>{p95State.toUpperCase()}</span></div>
+                <div className="monitoring-sla-row"><span>Minimum throughput</span><strong>{fmt(data?.sla?.configuration?.min_throughput_req_min)} req/min</strong><span>{telemetry?.throughput != null || telemetry?.request_rate != null ? 'LIVE' : 'NO DATA'}</span></div>
+                <div className="monitoring-sla-row"><span>Temperature</span><strong>{fmt(telemetry?.temperature,1)} °C</strong><span>{telemetry?.temperature != null ? 'LIVE' : 'NO DATA'}</span></div>
+                <p className="monitoring-footnote">Overall PASS/FAIL is supplied by the backend SLA evaluator. Individual metrics are shown as telemetry context.</p>
+              </section>
+              <section className="monitoring-card">
+                <div className="monitoring-card-head"><div><h3><Activity size={17}/> Telemetry Anomaly</h3><p>Live anomaly detection from the simulator</p></div><span className={`monitoring-result-pill ${data?.anomaly?.status === 'DETECTED' ? 'fail' : data?.anomaly?.status === 'RECOVERING' ? 'pending' : 'pass'}`}>{data?.anomaly?.status || 'WAITING'}</span></div>
+                <p className="monitoring-anomaly-reason">{data?.anomaly?.reason || 'Waiting for telemetry samples to establish a baseline.'}</p>
+                <div className="monitoring-anomaly-meta"><span>Severity</span><strong>{data?.anomaly?.severity || '—'}</strong></div>
+                <div className="monitoring-anomaly-meta"><span>Affected metrics</span><strong>{(data?.anomaly?.metrics || []).join(', ') || 'None reported'}</strong></div>
+                <div className="monitoring-anomaly-meta"><span>Last detected</span><strong>{data?.anomaly?.last_detected_at ? toLocalDate(data.anomaly.last_detected_at).toLocaleString() : '—'}</strong></div>
+              </section>
+            </div>
+            <section className="monitoring-card monitoring-events-card">
+              <div className="monitoring-card-head"><div><h3><History size={17}/> Recent Alerts &amp; Events</h3><p>Latest events recorded by the simulator and controller</p></div><span className="monitoring-event-count">{(data?.recent_events || []).length} recorded</span></div>
+              <div className="monitoring-event-list">
+                {(data?.recent_events || []).slice().reverse().slice(0,12).map((event,i) => <article className="monitoring-event" key={`${event.timestamp}-${i}`}><span className={`monitoring-event-dot ${event.type || ''}`}/><div className="monitoring-event-copy"><strong>{event.title || String(event.event || 'System event').replaceAll('_',' ')}</strong><p>{event.message || 'No additional event details supplied.'}</p></div><time>{event.timestamp ? toLocalDate(event.timestamp).toLocaleString() : '—'}</time></article>)}
+                {!data?.recent_events?.length && <div className="monitoring-empty">No alerts or controller events recorded yet. Start the simulation to begin monitoring.</div>}
+              </div>
+            </section>
+          </section>
+        )}
+
         {activePage === 'fleet' && (
           <section className="fleet-page">
             <div className="fleet-page-toolbar">
