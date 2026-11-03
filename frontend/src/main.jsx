@@ -92,7 +92,7 @@ function SimulationDashboard() {
 
   const [range, setRange] = useState(30)
 
-  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
+  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace','crossworkload'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
   const [activeNav, setActiveNav] = useState(initialPage)
   const [activePage, setActivePage] = useState(initialPage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
@@ -137,7 +137,7 @@ function SimulationDashboard() {
   useEffect(() => {
     const syncRoute = () => {
       const key = window.location.hash.slice(1)
-      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(key) ? key : 'dashboard'
+      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace','crossworkload'].includes(key) ? key : 'dashboard'
       setActivePage(next)
       setActiveNav(next)
     }
@@ -406,26 +406,17 @@ function SimulationDashboard() {
     settings: ['Settings', 'Simulator cadence, controller status, and SLA configuration'],
     sustainability: ['Sustainability', 'Estimated energy efficiency and thermal impact'],
     fleet: ['GPU Fleet', 'Live infrastructure capacity, GPU health, utilization and workload allocation'],
+    crossworkload: ['Cross-Workload AI', 'Priority-aware fractional GPU sharing across multiple simulated AI workloads'],
     workloads: ['AI Workloads', 'Current serving demand, latency, and workload protection'],
     analytics: ['Analytics & History', 'Telemetry trends and recorded controller decisions'],
   }
 
   const go = (key) => {
     setActiveNav(key)
-    if (key === 'crossworkload') {
-      setActivePage('dashboard'); setActiveNav(key); window.location.hash = 'dashboard';
-      requestAnimationFrame(() => document.getElementById('cross-workload')?.scrollIntoView({behavior:'smooth',block:'start'}));
-    } else if (key === 'fleet') {
-      setActivePage('fleet')
-      window.location.hash = 'fleet'
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      setActivePage(key)
-      window.location.hash = key
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    setActivePage(key)
+    window.location.hash = key
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
 
 
   return (
@@ -897,6 +888,7 @@ function SimulationDashboard() {
 
 
 
+        {activePage === 'crossworkload' && (
         <section className="panel cross-workload-panel" id="cross-workload">
           <div className="panel-header"><div><h2><Cpu size={19}/> Cross-Workload Intelligence</h2><p>Priority-aware fractional sharing across multiple simulated AI workloads</p></div><span className="simulated-tag">SIMULATED PLAN</span></div>
           {crossWorkloadPlan ? <>
@@ -911,6 +903,7 @@ function SimulationDashboard() {
             <p className="cross-disclaimer">{crossWorkloadPlan.disclaimer}</p>
           </> : <div className="empty">Cross-workload plan unavailable. Confirm the backend is running.</div>}
         </section>
+        )}
 
         <section className="sustainability panel">
 
