@@ -77,7 +77,7 @@ function pct(oldValue, newValue, lowerIsBetter = true) {
 
 
 
-function SimulationDashboard({ onSwitchMode }) {
+function SimulationDashboard() {
 
   const [data, setData] = useState(null)
   const [environmentMonitor, setEnvironmentMonitor] = useState(null)
@@ -479,7 +479,6 @@ function SimulationDashboard({ onSwitchMode }) {
           <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/><span className="side-action-label">Manual Spike</span></button>
 
           <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/><span className="side-action-label">Reset</span></button>
-          <button className="side-action switch-mode-sidebar" onClick={onSwitchMode}><Cpu size={16}/><span className="side-action-label">Switch Mode</span></button>
 
           <div className="last-run">Last simulation<br/><b>{running ? 'Live' : 'Idle'}</b></div>
 
@@ -1039,103 +1038,7 @@ function SimulationDashboard({ onSwitchMode }) {
 
 
 function App() {
-  const [mode, setMode] = useState(null);
-
-  const returnToSelection = () => {
-    // Return immediately; stop the simulator in the background if the API is available.
-    setMode(null);
-    api('/simulation/stop', { method: 'POST' }).catch(() => {});
-  };
-
-  if (mode === 'simulation') {
-    return (
-      <SimulationDashboard onSwitchMode={returnToSelection} />
-    );
-  }
-
-  if (mode === 'hybrid') {
-    return (
-      <main className="mode-screen mode-coming-soon">
-        <div className="mode-topbar">
-          <div className="mode-brand">
-            <span className="mode-brand-mark"><Leaf size={22} /></span>
-            <span>GPUPilot</span>
-          </div>
-          <button className="mode-back-button" onClick={() => setMode(null)}>← All modes</button>
-        </div>
-        <section className="coming-soon-card">
-          <div className="coming-soon-icon"><Server size={30} /></div>
-          <span className="mode-eyebrow">HYBRID ENVIRONMENT</span>
-          <h1>Real hardware. Real workloads.</h1>
-          <p>Hybrid Mode is the next development phase. It will connect supported NVIDIA GPUs, run real AI inference workloads and optimise performance using live telemetry.</p>
-          <div className="coming-soon-status"><span /> Coming soon</div>
-          <button className="mode-primary-button" onClick={() => setMode(null)}>Back to mode selection</button>
-        </section>
-        <p className="mode-footer">GPUPilot · Intelligent GPU infrastructure optimisation</p>
-      </main>
-    );
-  }
-
-  return (
-    <main className="mode-screen">
-      <div className="mode-topbar">
-        <div className="mode-brand">
-          <span className="mode-brand-mark"><Leaf size={22} /></span>
-          <span>GPUPilot</span>
-        </div>
-        <span className="mode-topbar-note"><span className="mode-online-dot" /> GPU OPTIMISATION PLATFORM</span>
-      </div>
-
-      <section className="mode-hero">
-        <span className="mode-eyebrow">INTELLIGENT GPU INFRASTRUCTURE</span>
-        <h1>Choose your environment</h1>
-        <p>Select how you want to explore GPUPilot. You can switch modes at any time.</p>
-      </section>
-
-      <section className="mode-options" aria-label="Choose GPUPilot operating mode">
-        <button className="mode-option simulation-option" onClick={() => setMode('simulation')}>
-          <div className="mode-option-top">
-            <span className="mode-option-icon simulation-icon"><Activity size={25} /></span>
-            <span className="mode-availability available"><i /> AVAILABLE NOW</span>
-          </div>
-          <div className="mode-option-copy">
-            <span className="mode-option-kicker">SAFE TEST ENVIRONMENT</span>
-            <h2>Simulation Mode</h2>
-            <p>Explore the existing GPUPilot experience with simulated GPU telemetry, dynamic workloads, SLA-aware optimisation and AutoPilot.</p>
-          </div>
-          <div className="mode-feature-list">
-            <span><i /> Five simulated GPUs</span>
-            <span><i /> Workload spikes and recovery</span>
-            <span><i /> Optimizer, AutoPilot and rollback</span>
-          </div>
-          <span className="mode-option-cta">Open Simulation Mode <b>→</b></span>
-        </button>
-
-        <button className="mode-option hybrid-option" onClick={() => setMode('hybrid')}>
-          <div className="mode-option-top">
-            <span className="mode-option-icon hybrid-icon"><Zap size={25} /></span>
-            <span className="mode-availability planned"><i /> IN DEVELOPMENT</span>
-          </div>
-          <div className="mode-option-copy">
-            <span className="mode-option-kicker">REAL INFRASTRUCTURE</span>
-            <h2>Hybrid Mode</h2>
-            <p>Connect real NVIDIA hardware, execute AI workloads and optimise GPU performance using live hardware telemetry.</p>
-          </div>
-          <div className="mode-feature-list">
-            <span><i /> Live GPU hardware detection</span>
-            <span><i /> Real AI model inference workloads</span>
-            <span><i /> Hardware-aware optimisation</span>
-          </div>
-          <span className="mode-option-cta">Explore Hybrid Mode <b>→</b></span>
-        </button>
-      </section>
-
-      <div className="mode-bottom-note">
-        <span>SIMULATION AND HYBRID ARE SEPARATE OPERATING MODES</span>
-        <span>GPUPilot · Built for measurable GPU efficiency</span>
-      </div>
-    </main>
-  );
+  return <SimulationDashboard />;
 }
 
 function Kpi({icon:Icon,label,value,unit,tone,history,dataKey,simple=false}) {
