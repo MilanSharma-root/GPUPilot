@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title">
+<title id="title">GPUPilot GPU chip logo</title>
+<defs>
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".52" stop-color="#3988ff"/><stop offset="1" stop-color="#9b5cf6"/></linearGradient>
+  <linearGradient id="s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#9b5cf6"/></linearGradient>
+</defs>
+<g fill="none" stroke="url(#g)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="48" y="42" width="124" height="132" rx="22"/>
+  <path d="M72 42V25M100 42V18M128 42V25M72 174v18M100 174v25M128 174v18M48 70H29M48 100H20M48 130H29M172 70h19M172 100h28M172 130h19"/>
+  <path d="M31 151c-18 25-15 44 7 48 41 8 121-31 150-73" stroke="url(#s)" stroke-width="8"/>
+</g>
+<g fill="url(#g)"><rect x="82" y="94" width="14" height="29" rx="3"/><rect x="105" y="78" width="14" height="45" rx="3"/><rect x="128" y="61" width="14" height="62" rx="3"/></g>
+<text x="110" y="151" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="23" font-weight="800" fill="#f8fbff">GPU</text>
+</svg>
