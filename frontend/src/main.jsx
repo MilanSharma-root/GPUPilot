@@ -95,6 +95,7 @@ function SimulationDashboard() {
   const [activeNav, setActiveNav] = useState(initialPage)
   const [activePage, setActivePage] = useState(initialPage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [moreToolsOpen, setMoreToolsOpen] = useState(['workloads', 'hardware', 'sustainability'].includes(initialPage))
 
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -450,13 +451,13 @@ function SimulationDashboard() {
             <button
               type="button"
               className={`nav-item nav-more-toggle ${secondaryNav.some(([key]) => activeNav === key) ? 'active' : ''}`}
-              aria-expanded={secondaryNav.some(([key]) => activeNav === key)}
+              aria-expanded={moreToolsOpen}
               title="More tools"
-              onClick={() => go(secondaryNav.some(([key]) => activeNav === key) ? 'analytics' : 'workloads')}
+              onClick={() => setMoreToolsOpen(open => !open)}
             >
               <Settings size={19}/><span>More Tools</span><ChevronDown size={15}/>
             </button>
-            {secondaryNav.map(([key, label, Icon]) => (
+            {moreToolsOpen && secondaryNav.map(([key, label, Icon]) => (
               <button key={key} title={label} aria-label={label} className={`nav-item nav-subitem ${activeNav === key ? 'active' : ''}`} onClick={() => go(key)}>
                 <Icon size={17}/><span>{label}</span>
               </button>
