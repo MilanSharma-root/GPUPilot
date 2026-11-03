@@ -461,15 +461,15 @@ function SimulationDashboard({ onSwitchMode }) {
 
           </button>
 
-          <button className="side-action primary" title="Start simulation" onClick={start} disabled={busy}><Play size={17} fill="currentColor"/>Start Simulation</button>
-          <button className="side-action stop" title="Stop simulation" onClick={stop} disabled={busy}><Square size={15}/>Stop Simulation</button>
+          <button className="side-action primary" title="Start simulation" onClick={start} disabled={busy}><Play size={17} fill="currentColor"/><span className="side-action-label">Start Simulation</span></button>
+          <button className="side-action stop" title="Stop simulation" onClick={stop} disabled={busy}><Square size={15}/><span className="side-action-label">Stop Simulation</span></button>
 
-          <button className="side-action warning side-spike-trigger" onClick={triggerAnomalySpike} disabled={busy}><Zap size={17} fill="currentColor"/>Trigger Anomaly Spike</button>
+          <button className="side-action warning side-spike-trigger" onClick={triggerAnomalySpike} disabled={busy}><Zap size={17} fill="currentColor"/><span className="side-action-label">Trigger Anomaly Spike</span></button>
 
-          <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/>Manual Spike</button>
+          <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/><span className="side-action-label">Manual Spike</span></button>
 
-          <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/>Reset</button>
-          <button className="side-action switch-mode-sidebar" onClick={onSwitchMode}><Cpu size={16}/>Switch Mode</button>
+          <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/><span className="side-action-label">Reset</span></button>
+          <button className="side-action switch-mode-sidebar" onClick={onSwitchMode}><Cpu size={16}/><span className="side-action-label">Switch Mode</span></button>
 
           <div className="last-run">Last simulation<br/><b>{running ? 'Live' : 'Idle'}</b></div>
 
