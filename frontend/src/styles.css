@@ -1267,3 +1267,8 @@ body:has(.main-content.quality) .mode-switch-floating {
 .benchmark-empty{padding:38px;text-align:center;border:1px dashed #cbd5e1;border-radius:9px;background:#fff;color:var(--muted);font-size:13px}
 .benchmark-disclaimer{margin:0;color:#758197;font-size:11px}
 @media(max-width:900px){.benchmark-grid{grid-template-columns:1fr}.benchmark-hero{align-items:flex-start;flex-direction:column}}
+
+
+/* GPUPilot custom GPU-chip brand mark */
+.brand-mark img{display:block;width:36px;height:36px;object-fit:contain;transform:none}
+.sidebar.collapsed .brand-mark img{width:34px;height:34px}
