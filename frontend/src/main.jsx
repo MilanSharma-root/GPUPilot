@@ -100,6 +100,8 @@ function SimulationDashboard({ onSwitchMode }) {
 
   const [interval, setIntervalValue] = useState(1)
 
+  const [benchmark, setBenchmark] = useState(null)
+  const [benchmarkLoading, setBenchmarkLoading] = useState(false)
   const [quality, setQuality] = useState(null)
   const [qualityHistory, setQualityHistory] = useState([])
 
@@ -233,6 +235,14 @@ function SimulationDashboard({ onSwitchMode }) {
     setSimulationNotice(result.message || 'Manual workload spike triggered.')
   })
 
+
+  const runBenchmark = async () => {
+    setBenchmarkLoading(true)
+    setError('')
+    try { setBenchmark(await api('/benchmark')) }
+    catch (err) { setError(err.message) }
+    finally { setBenchmarkLoading(false) }
+  }
 
   const evaluateQuality = () => run(async () => {
     const result = await api('/quality/evaluate', { method: 'POST', body: JSON.stringify({ reference_precision: 'FP16', candidate_precision: 'INT8', allowed_degradation_pct: Number(qualityThreshold) }) })
@@ -504,6 +514,29 @@ function SimulationDashboard({ onSwitchMode }) {
           </div>
 
         </header>
+
+        {activePage === 'optimization' && (
+          <section className="benchmark-page">
+            <div className="benchmark-hero">
+              <div><span className="eyebrow">OPTIMIZATION LAB</span><h2>Scenario Benchmark</h2><p>Compare the current configuration with GPUPilot's best SLA-feasible configuration across four workload conditions.</p></div>
+              <button onClick={runBenchmark} disabled={benchmarkLoading}>{benchmarkLoading ? 'Running benchmark…' : 'Run Scenario Benchmark'}</button>
+            </div>
+            <div className="benchmark-note"><strong>Simulation benchmark</strong><span>Uses steady-state model estimates. It does not change the live simulation or represent measured physical GPU results.</span></div>
+            {benchmark?.scenarios?.length ? <div className="benchmark-grid">
+              {benchmark.scenarios.map(s => <article className="benchmark-card" key={s.name}>
+                <div className="benchmark-card-head"><div><span>{s.name.toUpperCase()} SCENARIO</span><h3>{fmt(s.request_rate)} req/min</h3><p>{s.description}</p></div><b>{s.feasible_candidates} feasible</b></div>
+                <div className="benchmark-metrics">
+                  <div><small>Power</small><strong>{fmt(s.baseline.power_w,1)} <i>→</i> {fmt(s.optimized.power_w,1)} W</strong><em>{fmt(s.power_change_pct,1)}% change</em></div>
+                  <div><small>P95 latency</small><strong>{fmt(s.baseline.p95_latency_ms,1)} <i>→</i> {fmt(s.optimized.p95_latency_ms,1)} ms</strong><em>{s.optimized.sla_status} SLA</em></div>
+                  <div><small>Throughput</small><strong>{fmt(s.baseline.throughput_req_min)} <i>→</i> {fmt(s.optimized.throughput_req_min)} req/min</strong><em>Optimized estimate</em></div>
+                  <div><small>Energy / 1,000 requests</small><strong>{fmt(s.baseline.energy_wh_per_1000_requests,3)} <i>→</i> {fmt(s.optimized.energy_wh_per_1000_requests,3)} Wh</strong><em>{fmt(s.energy_change_pct,1)}% change</em></div>
+                </div>
+                <div className="benchmark-card-foot"><span>{s.candidates_considered} candidates · {s.rejected_candidates} filtered</span><span>Selected: {s.configuration.precision} · batch {s.configuration.batch_size} · {s.configuration.gpu_allocation * s.configuration.replicas} GPU(s)</span></div>
+              </article>)}
+            </div> : <div className="benchmark-empty">Run the benchmark to compare normal, spike, peak and recovery workloads.</div>}
+            {benchmark?.disclaimer && <p className="benchmark-disclaimer">{benchmark.disclaimer}</p>}
+          </section>
+        )}
 
         {activePage === 'analytics' && (
           <section className="analytics-page">
