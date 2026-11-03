@@ -1272,3 +1272,20 @@ body:has(.main-content.quality) .mode-switch-floating {
 /* GPUPilot custom GPU-chip brand mark */
 .brand-mark img{display:block;width:36px;height:36px;object-fit:contain;transform:none}
 .sidebar.collapsed .brand-mark img{width:34px;height:34px}
+
+
+/* Cross-workload allocation panel */
+.cross-workload-panel{margin:18px 0;padding:20px;scroll-margin-top:18px}
+.simulated-tag{font-size:10px;font-weight:800;letter-spacing:.5px;color:#245a96;background:#eff6ff;border:1px solid #cbdcf1;border-radius:5px;padding:6px 9px}
+.cross-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.cross-kpis>div,.cross-gpu{padding:13px;background:#f7f9fc;border:1px solid #e2e8f0;border-radius:8px}
+.cross-kpis span,.cross-gpu small,.cross-gpu span{display:block;color:#64748b;font-size:11px}
+.cross-kpis strong{display:block;font-size:23px;margin-top:5px}
+.cross-gpu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+.cross-gpu b,.cross-gpu span,.cross-gpu small{margin-bottom:6px}
+.cross-workload-list{display:grid;gap:8px;margin-top:14px}
+.cross-workload-row{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid #e2e8f0;border-radius:8px}
+.cross-workload-row small{display:block;color:#64748b;font-size:11px}
+.cross-workload-row p{grid-column:1/-1;margin:0;color:#64748b;font-size:12px}
+.cross-disclaimer{font-size:11px;color:#64748b;margin-top:12px}
+@media(max-width:760px){.cross-kpis{grid-template-columns:repeat(2,1fr)}.cross-workload-row{grid-template-columns:1fr 1fr}}
