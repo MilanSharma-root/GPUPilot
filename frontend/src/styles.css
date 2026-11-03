@@ -942,3 +942,43 @@ body:has(.main-content.quality) .mode-switch-floating {
   gap:8px;
   padding:0 10px;
 }
+
+
+/* Explicit two-column button layout avoids glyphs touching their labels. */
+.sidebar.collapsed:hover .health-card .side-action,
+.sidebar.expanded .health-card .side-action{
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr);
+  align-items:center;
+  justify-items:start;
+  column-gap:10px;
+  padding:0 12px;
+  text-align:left;
+  font-size:11px;
+  line-height:1.2;
+}
+.sidebar.collapsed:hover .health-card .side-action>svg,
+.sidebar.expanded .health-card .side-action>svg{
+  width:17px;
+  height:17px;
+  justify-self:center;
+  margin:0;
+}
+.sidebar.collapsed:hover .health-card .side-action .side-action-label,
+.sidebar.expanded .health-card .side-action .side-action-label{
+  display:block;
+  min-width:0;
+  white-space:nowrap;
+  font-size:11px;
+  font-weight:700;
+}
+.sidebar.collapsed:not(:hover) .health-card .side-action{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  gap:0;
+}
+.sidebar.collapsed:not(:hover) .health-card .side-action .side-action-label{display:none}
+.sidebar.collapsed .health-card .side-action.primary:after,
+.sidebar.collapsed .health-card .side-action.reset:after{content:none}
