@@ -961,29 +961,35 @@ function SimulationDashboard({ onSwitchMode }) {
 
 
 
-        {(settingsOpen || activePage === 'settings') && <section className="settings-panel panel" id="settings">
-
-          <div className="panel-header simple"><div><h2><SlidersHorizontal size={19}/> Settings</h2><p>Only controls that affect the supplied simulator are exposed.</p></div><button className="close-btn" onClick={()=>setSettingsOpen(false)}>Close</button></div>
-
-          <div className="settings-grid">
-
-            <label>Simulation tick interval
-
-              <select value={interval} onChange={e=>setIntervalValue(Number(e.target.value))}>
-
-                <option value="0.5">0.5 seconds</option><option value="1">1 second</option><option value="2">2 seconds</option><option value="5">5 seconds</option>
-
-              </select>
-
-            </label>
-
-            <div className="setting-state"><span>Autonomous controller</span><b>{auto ? 'Enabled' : 'Disabled'}</b><button onClick={toggleAutopilot}>{auto ? 'Stop' : 'Start'}</button></div>
-
-            <div className="setting-state"><span>Configured SLA</span><b>{data?.sla?.configuration?.max_latency_ms ?? '—'} ms max P95 latency</b><small>{data?.sla?.configuration?.min_throughput_req_min ?? '—'} req/min minimum throughput</small></div>
-
-          </div>
-
-        </section>}
+        {activePage === 'settings' && (
+          <section className="settings-page">
+            <div className="settings-intro"><div><span className="eyebrow">CONFIGURATION</span><h2>Simulation Settings</h2><p>Manage simulator behaviour and autonomous optimization preferences. SLA values are shown from the backend configuration.</p></div><span className="settings-status"><i/>{running ? 'Simulator running' : 'Simulator stopped'}</span></div>
+            <div className="settings-layout">
+              <section className="settings-card">
+                <div className="settings-card-heading"><span className="settings-icon"><SlidersHorizontal size={18}/></span><div><h3>Simulation Configuration</h3><p>Control the telemetry sampling interval used when starting the simulator.</p></div></div>
+                <label className="settings-field">Simulation tick interval
+                  <select value={interval} onChange={e=>setIntervalValue(Number(e.target.value))}>
+                    <option value="0.5">0.5 seconds — Fast</option><option value="1">1 second — Balanced</option><option value="2">2 seconds — Relaxed</option><option value="5">5 seconds — Low frequency</option>
+                  </select>
+                  <small>Applies the next time you start or restart the simulation.</small>
+                </label>
+                <div className="settings-current-row"><span>Current simulator status</span><strong>{running ? 'Running' : 'Stopped'}</strong></div>
+                <div className="settings-action-row"><button className="settings-primary" onClick={start} disabled={busy || running}><Play size={15}/>Start Simulation</button><button className="settings-secondary" onClick={stop} disabled={busy || !running}><Square size={14}/>Stop Simulation</button></div>
+              </section>
+              <section className="settings-card">
+                <div className="settings-card-heading"><span className="settings-icon"><Cpu size={18}/></span><div><h3>Autonomous Controller</h3><p>Allow GPUPilot to evaluate telemetry and apply optimization decisions automatically.</p></div></div>
+                <div className="settings-controller-state"><div><strong>{auto ? 'Autonomous Mode Enabled' : 'Autonomous Mode Disabled'}</strong><span>{auto ? 'Controller is active and monitoring the running environment.' : 'Manual optimization mode. Enable AutoPilot to automate decisions.'}</span></div><span className={`settings-state-pill ${auto ? 'on' : 'off'}`}>{auto ? 'ON' : 'OFF'}</span></div>
+                <button className={`settings-toggle-button ${auto ? 'enabled' : ''}`} onClick={toggleAutopilot} disabled={busy}><Cpu size={15}/>{auto ? 'Disable Autonomous Mode' : 'Enable Autonomous Mode'}</button>
+              </section>
+              <section className="settings-card settings-sla-card">
+                <div className="settings-card-heading"><span className="settings-icon"><ShieldCheck size={18}/></span><div><h3>Service Level Configuration</h3><p>Current SLA thresholds supplied by the backend.</p></div></div>
+                <div className="settings-config-row"><span>Maximum P95 latency</span><strong>{data?.sla?.configuration?.max_latency_ms ?? '—'} <small>ms</small></strong></div>
+                <div className="settings-config-row"><span>Minimum throughput</span><strong>{data?.sla?.configuration?.min_throughput_req_min ?? '—'} <small>req/min</small></strong></div>
+                <div className="settings-readonly-note"><ShieldCheck size={14}/> SLA thresholds are read-only in this interface.</div>
+              </section>
+            </div>
+          </section>
+        )}
 
 
 
