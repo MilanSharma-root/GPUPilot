@@ -505,6 +505,36 @@ function SimulationDashboard({ onSwitchMode }) {
 
         </header>
 
+        {activePage === 'analytics' && (
+          <section className="analytics-page">
+            <div className="analytics-hero">
+              <div><span className="eyebrow">PERFORMANCE INSIGHTS</span><h2>Telemetry Analytics &amp; Decision History</h2><p>Explore GPU performance trends, resource behaviour and optimization decisions recorded by GPUPilot.</p></div>
+              <label className="analytics-range">Time range<select value={range} onChange={e => setRange(Number(e.target.value))}><option value="5">Last 5 minutes</option><option value="15">Last 15 minutes</option><option value="30">Last 30 minutes</option><option value="60">Last 1 hour</option></select></label>
+            </div>
+            <div className="analytics-summary-grid">
+              <article className="analytics-stat"><span>Telemetry Samples</span><strong>{visibleHistory.length}</strong><small>Samples in selected range</small></article>
+              <article className="analytics-stat"><span>Average GPU Power</span><strong>{visibleHistory.length ? fmt(visibleHistory.reduce((sum,row)=>sum+(Number(row.total_power)||0),0)/visibleHistory.length,1) : '—'} <small>W</small></strong><small>Across recorded samples</small></article>
+              <article className="analytics-stat"><span>Average Temperature</span><strong>{visibleHistory.length ? fmt(visibleHistory.reduce((sum,row)=>sum+(Number(row.temperature)||0),0)/visibleHistory.length,1) : '—'} <small>°C</small></strong><small>Across recorded samples</small></article>
+              <article className="analytics-stat"><span>Controller Events</span><strong>{(data?.recent_events || []).length}</strong><small>Events currently retained by backend</small></article>
+            </div>
+            <section className="analytics-card">
+              <div className="analytics-card-head"><div><h3><Activity size={17}/> GPU Power Trend</h3><p>Total cluster power consumption over time</p></div><span>{running ? 'LIVE DATA' : 'RECORDED DATA'}</span></div>
+              <div className="analytics-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{top:8,right:14,left:0,bottom:0}}><defs><linearGradient id="analyticsPowerFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2684d8" stopOpacity={.22}/><stop offset="100%" stopColor="#2684d8" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={38}/><YAxis/><Tooltip formatter={v=>[`${fmt(v,1)} W`,'GPU Power']}/><Area type="monotone" dataKey="power" stroke="#2684d8" strokeWidth={2} fill="url(#analyticsPowerFill)" isAnimationActive={false}/></AreaChart></ResponsiveContainer></div>
+            </section>
+            <div className="analytics-chart-grid">
+              <section className="analytics-card"><div className="analytics-card-head"><div><h3><Thermometer size={17}/> Temperature Trend</h3><p>Average GPU thermal load</p></div></div><div className="analytics-chart small"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{top:8,right:12,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={35}/><YAxis/><Tooltip formatter={v=>[`${fmt(v,1)} °C`,'Temperature']}/><Line type="monotone" dataKey="temperature" stroke="#e28a32" strokeWidth={2} dot={false} isAnimationActive={false}/></LineChart></ResponsiveContainer></div></section>
+              <section className="analytics-card"><div className="analytics-card-head"><div><h3><Zap size={17}/> Request Rate Trend</h3><p>Incoming request volume over time</p></div></div><div className="analytics-chart small"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{top:8,right:12,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={35}/><YAxis/><Tooltip formatter={v=>[`${fmt(v)} req/min`,'Request rate']}/><Line type="monotone" dataKey="requestRate" stroke="#159b75" strokeWidth={2} dot={false} isAnimationActive={false}/></LineChart></ResponsiveContainer></div></section>
+            </div>
+            <section className="analytics-card analytics-history-card">
+              <div className="analytics-card-head"><div><h3><History size={17}/> Optimization &amp; Controller History</h3><p>Recorded actions, configuration changes and simulator events</p></div><span>{(data?.recent_events || []).length} EVENTS</span></div>
+              <div className="analytics-history-list">
+                {(data?.recent_events || []).slice().reverse().map((event,i)=><article className="analytics-history-row" key={`${event.timestamp}-${i}`}><span className={`analytics-history-dot ${event.type || ''}`}/><div><strong>{event.title || String(event.event || 'System event').replaceAll('_',' ')}</strong><p>{event.message || 'No additional details recorded.'}</p></div><time>{event.timestamp ? toLocalDate(event.timestamp).toLocaleString() : '—'}</time></article>)}
+                {!data?.recent_events?.length && <div className="analytics-empty">No controller history is available yet. Start the simulator to record telemetry and optimization events.</div>}
+              </div>
+            </section>
+          </section>
+        )}
+
         {activePage === 'alerts' && (
           <section className="monitoring-page">
             <div className="monitoring-hero">
