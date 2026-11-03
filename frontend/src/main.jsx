@@ -392,7 +392,7 @@ function SimulationDashboard() {
     hardware: ['Hardware & Software Monitor', 'Installed inventory and public release checks'],
     settings: ['Settings', 'Simulator cadence, controller status, and SLA configuration'],
     sustainability: ['Sustainability', 'Estimated energy efficiency and thermal impact'],
-    fleet: ['GPU Fleet', 'Live status and allocation across five simulated GPUs'],
+    fleet: ['GPU Fleet', 'Live infrastructure capacity, GPU health, utilization and workload allocation'],
     workloads: ['AI Workloads', 'Current serving demand, latency, and workload protection'],
     analytics: ['Analytics & History', 'Telemetry trends and recorded controller decisions'],
   }
@@ -400,9 +400,9 @@ function SimulationDashboard() {
   const go = (key) => {
     setActiveNav(key)
     if (key === 'fleet') {
-      setActivePage('dashboard')
-      window.location.hash = 'dashboard'
-      requestAnimationFrame(() => document.getElementById('gpu-fleet')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+      setActivePage('fleet')
+      window.location.hash = 'fleet'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       setActivePage(key)
       window.location.hash = key
@@ -504,7 +504,45 @@ function SimulationDashboard() {
 
         </header>
 
-
+        {activePage === 'fleet' && (
+          <section className="fleet-page">
+            <div className="fleet-page-toolbar">
+              <div><span className="eyebrow">INFRASTRUCTURE OVERVIEW</span><h2>GPU Resource Pool</h2><p>Live health, utilization and allocation across the simulated GPU cluster.</p></div>
+              <span className={`fleet-live-state ${running ? 'online' : 'idle'}`}><i/>{running ? 'Live telemetry' : 'Simulation idle'}</span>
+            </div>
+            <div className="fleet-kpi-grid">
+              <div className="fleet-kpi"><span>Total GPU Capacity</span><strong>{data?.cluster?.gpu_count ?? 5}</strong><small>Devices in resource pool</small></div>
+              <div className="fleet-kpi"><span>Active GPUs</span><strong>{(data?.cluster?.gpus || []).filter(g => ['Active','Overloaded'].includes(g.status)).length}</strong><small>Currently serving workloads</small></div>
+              <div className="fleet-kpi"><span>Idle GPUs</span><strong>{(data?.cluster?.gpus || []).filter(g => g.status === 'Idle').length}</strong><small>Available for allocation</small></div>
+              <div className="fleet-kpi"><span>Cluster Power</span><strong>{fmt((data?.cluster?.gpus || []).reduce((sum,g) => sum + (Number(g.power)||0),0),1)} <small>W</small></strong><small>Combined GPU power draw</small></div>
+            </div>
+            <div className="fleet-section-heading"><div><h3>GPU Devices</h3><p>Per-device telemetry and resource consumption</p></div><span>{(data?.cluster?.gpus || []).length} / {data?.cluster?.gpu_count ?? 5} reporting</span></div>
+            <div className="fleet-device-grid">
+              {(data?.cluster?.gpus || []).map(g => {
+                const status = g.status || (g.active ? 'Active' : 'Idle')
+                const utilization = Math.max(0, Math.min(100, Number(g.utilization) || 0))
+                const memoryPct = Math.max(0, Math.min(100, 100 * (Number(g.memory)||0) / (Number(g.memory_capacity)||24)))
+                return <article className={`fleet-device-card status-${String(status).toLowerCase()}`} key={g.id}>
+                  <div className="fleet-device-head"><div className="fleet-device-icon"><Cpu size={20}/></div><div><strong>{g.id}</strong><span>{g.model || 'GPU accelerator'}</span></div><Pill pass={status === 'Active'}>{status}</Pill></div>
+                  <div className="fleet-utilization"><div><span>GPU Utilization</span><strong>{fmt(utilization)}%</strong></div><div className="fleet-progress"><i style={{width:`${utilization}%`}}/></div></div>
+                  <div className="fleet-device-metrics">
+                    <div><span>Power Draw</span><strong>{fmt(g.power,1)} W</strong></div>
+                    <div><span>Temperature</span><strong>{fmt(g.temperature,1)} °C</strong></div>
+                    <div><span>Memory Usage</span><strong>{fmt(g.memory,1)} / {fmt(g.memory_capacity,0)} GB</strong></div>
+                  </div>
+                  <div className="fleet-memory"><div className="fleet-progress"><i style={{width:`${memoryPct}%`}}/></div><span>{fmt(memoryPct)}% memory used</span></div>
+                  <div className="fleet-assignment"><span>Assigned Workload</span><strong>{g.workload || 'No workload assigned'}</strong></div>
+                </article>
+              })}
+              {!data?.cluster?.gpus?.length && <div className="empty">Waiting for GPU fleet telemetry. Start the simulator to populate device metrics.</div>}
+            </div>
+            <div className="fleet-section-heading"><div><h3>Workload Allocation</h3><p>Current demand mapped to the serving cluster</p></div></div>
+            <div className="fleet-workload-list">
+              {(data?.workloads || []).map(w => <div className="fleet-workload-row" key={w.id}><div className="fleet-workload-name"><strong>{w.name}</strong><span>{w.model}</span></div><div><strong>{fmt(w.requests_per_min)}</strong><span>Requests / min</span></div><div><strong>{fmt(w.latency_ms,0)} ms</strong><span>Latency</span></div><Pill pass={String(w.status || '').includes('Protected')}>{w.status || 'Running'}</Pill></div>)}
+              {!data?.workloads?.length && <div className="empty">No active workloads are currently reported.</div>}
+            </div>
+          </section>
+        )}
 
         {error && <div className="error-banner"><AlertTriangle size={17}/><span>Backend connection: {error}</span><button onClick={refresh}>Retry</button></div>}
         {anomalyToast && <div className="anomaly-toast" role="alert" aria-live="assertive"><AlertTriangle size={16}/><span>{anomalyToast.text}</span><button onClick={() => setAnomalyToast(null)} aria-label="Dismiss alert">×</button></div>}
