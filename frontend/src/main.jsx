@@ -646,6 +646,7 @@ function SimulationDashboard() {
         {anomalyToast && <div className="anomaly-toast" role="alert" aria-live="assertive"><AlertTriangle size={16}/><span>{anomalyToast.text}</span><button onClick={() => setAnomalyToast(null)} aria-label="Dismiss alert">×</button></div>}
         {simulationNotice && <div className="simulation-action-notice" role="status"><Zap size={16}/><span>{simulationNotice}</span><button onClick={() => setSimulationNotice('')} aria-label="Dismiss simulation notice">×</button></div>}
 
+        {activePage === 'dashboard' && (
         <section className={`anomaly-panel ${data?.anomaly?.status === 'DETECTED' ? 'detected' : data?.anomaly?.status === 'RECOVERING' ? 'recovering' : 'normal'}`} id="sla-anomaly">
           <div className="anomaly-icon"><AlertTriangle size={21}/></div>
           <div className="anomaly-copy">
@@ -849,6 +850,8 @@ function SimulationDashboard() {
 
 
 
+        )}
+
         {activePage === 'quality' && <section className="quality-page">
           <div className="quality-page-heading">
             <div><span className="quality-eyebrow">MODEL VALIDATION</span><h2>Precision Quality Gate</h2><p>Evaluate whether INT8 maintains acceptable model quality against the FP16 baseline.</p></div>
@@ -905,6 +908,7 @@ function SimulationDashboard() {
         </section>
         )}
 
+        {activePage === 'dashboard' && (
         <section className="sustainability panel">
 
           <div className="panel-header simple"><div><h2><Leaf size={20}/> Sustainability Impact</h2><p>Estimated for current workload</p></div></div>
@@ -1007,6 +1011,8 @@ function SimulationDashboard() {
         </section>
 
 
+
+        )}
 
         {activePage === 'settings' && (
           <section className="settings-page">
