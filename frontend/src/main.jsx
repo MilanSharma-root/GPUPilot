@@ -77,7 +77,7 @@ function pct(oldValue, newValue, lowerIsBetter = true) {
 
 
 
-function SimulationDashboard() {
+function SimulationDashboard({ onSwitchMode }) {
 
   const [data, setData] = useState(null)
   const [environmentMonitor, setEnvironmentMonitor] = useState(null)
@@ -469,6 +469,7 @@ function SimulationDashboard() {
           <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/>Manual Spike</button>
 
           <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/>Reset</button>
+          <button className="side-action switch-mode-sidebar" onClick={onSwitchMode}><Cpu size={16}/>Switch Mode</button>
 
           <div className="last-run">Last simulation<br/><b>{running ? 'Live' : 'Idle'}</b></div>
 
@@ -941,12 +942,7 @@ function App() {
 
   if (mode === 'simulation') {
     return (
-      <>
-        <button className="mode-switch-floating" onClick={returnToSelection} aria-label="Switch operating mode">
-          <Cpu size={15} /> Switch Mode
-        </button>
-        <SimulationDashboard />
-      </>
+      <SimulationDashboard onSwitchMode={returnToSelection} />
     );
   }
 
