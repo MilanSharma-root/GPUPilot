@@ -851,6 +851,7 @@ function SimulationDashboard() {
 
 
 
+          </>
         )}
 
         {activePage === 'quality' && <section className="quality-page">
