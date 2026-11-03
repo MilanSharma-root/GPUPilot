@@ -1198,3 +1198,45 @@ body:has(.main-content.quality) .mode-switch-floating {
 .analytics-empty{padding:25px 8px;text-align:center;font-size:11px;color:#8290a2}
 @media(max-width:900px){.analytics-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-chart-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.analytics-hero{align-items:flex-start;flex-direction:column}.analytics-history-row{grid-template-columns:9px minmax(0,1fr)}.analytics-history-row time{grid-column:2;text-align:left}}
+
+
+/* Dedicated Settings workspace */
+.main-content.settings>.page-header~:not(.settings-page){display:none!important}
+.main-content.settings .settings-page{display:grid;gap:15px;padding:2px 0 28px;max-width:1200px;margin:0 auto}
+.settings-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 22px;background:linear-gradient(115deg,#f8fbff,#f0f7fc);border:1px solid #dce6f0;border-radius:11px}
+.settings-intro h2{font-size:21px;color:#14213d;margin:6px 0}
+.settings-intro p{font-size:12px;color:#65758b;margin:0;max-width:750px}
+.settings-status{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:8px;background:#f1f5f9;color:#64748b;font-size:10px;font-weight:800;white-space:nowrap}
+.settings-status i{width:8px;height:8px;border-radius:50%;background:#94a3b8}
+.settings-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.settings-card{background:#fff;border:1px solid #dfe6ee;border-radius:10px;padding:18px;box-shadow:0 2px 6px rgba(15,35,65,.03);min-width:0}
+.settings-card-heading{display:flex;align-items:center;gap:11px;padding-bottom:15px;border-bottom:1px solid #edf1f5;margin-bottom:15px}
+.settings-icon{width:38px;height:38px;display:grid;place-items:center;flex:none;background:#edf4ff;color:#3475b8;border-radius:9px}
+.settings-card-heading h3{font-size:13px;color:#182b47;margin:0 0 4px}
+.settings-card-heading p{font-size:10px;color:#8290a2;line-height:1.45;margin:0}
+.settings-field{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:700;color:#34465f}
+.settings-field select{width:100%;border:1px solid #dce4ed;border-radius:7px;padding:10px 11px;background:#fff;color:#243a57;font-size:11px}
+.settings-field small{font-size:10px;font-weight:400;color:#8290a2}
+.settings-current-row,.settings-config-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eff2f6}
+.settings-current-row span,.settings-config-row span{font-size:10px;color:#718096}
+.settings-current-row strong{font-size:11px;color:#243a57}
+.settings-action-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.settings-action-row button,.settings-toggle-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:0 12px;border-radius:7px;font-size:10px;font-weight:750;cursor:pointer}
+.settings-primary{background:#087f62;color:#fff;border:1px solid #087f62}
+.settings-secondary{background:#f1f5f9;color:#33465f;border:1px solid #dce4ed}
+.settings-action-row button:disabled,.settings-toggle-button:disabled{opacity:.45;cursor:not-allowed}
+.settings-controller-state{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #e5ebf2;border-radius:8px;background:#f8fafc}
+.settings-controller-state>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.settings-controller-state strong{font-size:11px;color:#243a57}
+.settings-controller-state span:not(.settings-state-pill){font-size:10px;color:#7a8799;line-height:1.4}
+.settings-state-pill{font-size:9px;font-weight:850;padding:5px 8px;border-radius:6px}
+.settings-state-pill.on{background:#e7f8ef;color:#087b4d}
+.settings-state-pill.off{background:#f1f5f9;color:#64748b}
+.settings-toggle-button{width:100%;margin-top:12px;background:#203653;border:1px solid #203653;color:#fff}
+.settings-toggle-button.enabled{background:#fff0ef;border-color:#f2cecb;color:#b42323}
+.settings-sla-card{grid-column:1/-1}
+.settings-config-row strong{font-size:14px;color:#203550}
+.settings-config-row strong small{font-size:10px;color:#718096}
+.settings-readonly-note{display:flex;align-items:center;gap:7px;margin-top:13px;padding:9px 10px;border-radius:7px;background:#f7f9fc;color:#718096;font-size:10px}
+.settings-readonly-note svg{color:#4c80b6}
+@media(max-width:760px){.settings-layout{grid-template-columns:1fr}.settings-sla-card{grid-column:auto}.settings-intro{align-items:flex-start;flex-direction:column}}
