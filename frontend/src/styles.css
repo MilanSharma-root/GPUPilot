@@ -798,3 +798,27 @@ body{min-width:320px;background:#f5f7fa;color:#152238}
 body:has(.main-content.quality) .mode-switch-floating {
   display: none !important;
 }
+
+
+/* Automatic sidebar expansion on hover; no arrow toggle. */
+.sidebar.collapsed{width:76px;padding:15px 14px;transition:width .2s ease,padding .2s ease;overflow-x:visible}
+.sidebar.collapsed:hover{width:252px;padding:15px 14px;box-shadow:8px 0 24px rgba(5,15,30,.16);z-index:20}
+.sidebar.collapsed:hover .brand{height:52px;min-height:52px;display:flex;align-items:center;justify-content:flex-start;padding:0 7px 12px;gap:9px}
+.sidebar.collapsed:hover .brand-mark{width:36px;height:36px;flex:none}
+.sidebar.collapsed:hover .brand-copy{display:block}
+.sidebar.collapsed:hover .nav-item{justify-content:flex-start;padding:0 12px}
+.sidebar.collapsed:hover .nav-item span{display:block}
+.sidebar.collapsed:hover .health-card{padding:12px}
+.sidebar.collapsed:hover .health-title{justify-content:flex-start}
+.sidebar.collapsed:hover .health-title strong,
+.sidebar.collapsed:hover .health-card p,
+.sidebar.collapsed:hover .autonomous-row span:not(.toggle),
+.sidebar.collapsed:hover .sim-controls-label,
+.sidebar.collapsed:hover .side-action:not(.primary):not(.reset),
+.sidebar.collapsed:hover .last-run{display:block}
+.sidebar.collapsed:hover .autonomous-row{justify-content:flex-start}
+.sidebar.collapsed:hover .toggle{margin-left:auto}
+.sidebar.collapsed:hover .side-action{font-size:10px;width:100%;height:30px}
+.sidebar.collapsed:hover .side-action.primary:after,
+.sidebar.collapsed:hover .side-action.reset:after{content:none}
+.app-shell:has(.sidebar.collapsed:hover) .main-content{margin-left:252px;width:calc(100% - 252px)}
