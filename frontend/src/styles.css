@@ -982,3 +982,47 @@ body:has(.main-content.quality) .mode-switch-floating {
 .sidebar.collapsed:not(:hover) .health-card .side-action .side-action-label{display:none}
 .sidebar.collapsed .health-card .side-action.primary:after,
 .sidebar.collapsed .health-card .side-action.reset:after{content:none}
+
+
+/* Final override: keep each simulation-control icon and label on one horizontal line. */
+.sidebar .health-card .side-action,
+.sidebar.collapsed:hover .health-card .side-action{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:9px !important;
+  padding:0 10px !important;
+  text-align:center !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+.sidebar .health-card .side-action>svg,
+.sidebar.collapsed:hover .health-card .side-action>svg{
+  display:block !important;
+  position:static !important;
+  inset:auto !important;
+  flex:0 0 16px !important;
+  width:16px !important;
+  height:16px !important;
+  margin:0 !important;
+  transform:none !important;
+}
+.sidebar .health-card .side-action .side-action-label,
+.sidebar.collapsed:hover .health-card .side-action .side-action-label{
+  display:inline-block !important;
+  flex:0 1 auto !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+  line-height:1 !important;
+  font-size:11px !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+.sidebar.collapsed:not(:hover) .health-card .side-action{
+  justify-content:center !important;
+  gap:0 !important;
+  padding:0 !important;
+}
+.sidebar.collapsed:not(:hover) .health-card .side-action .side-action-label{display:none !important}
