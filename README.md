@@ -49,6 +49,7 @@ flowchart TD
 - **Sustainability estimates:** Estimated energy, cooling energy, and water impact using configurable PUE/WUE assumptions.
 - **Precision quality-gate demo:** Simulated FP16/INT8 quality threshold checks. This does not run model inference or measure actual model accuracy.
 - **Hardware/software change monitor:** Can use TinyFish Search when an API key is configured; the displayed hardware/software inventory remains simulated.
+- **Scenario benchmarking:** Compare baseline and best SLA-feasible configurations across normal, spike, peak, and recovery workloads; includes power, P95 latency, throughput, temperature, and estimated energy per 1,000 successful requests. Benchmarks use the steady-state simulator model and do not mutate live simulation state.
 - **History and export:** Access telemetry history and export recorded samples.
 - **API and tests:** FastAPI/OpenAPI endpoints and automated tests for core simulator, optimizer, prediction, and sustainability behavior.
 - **Docker Compose:** Run the backend and dashboard together.
@@ -161,6 +162,7 @@ The complete request/response schemas are available at <http://127.0.0.1:8000/do
 | `/api/optimize` | GET | Get an optimization recommendation |
 | `/api/optimization` | GET | Alternative optimization endpoint |
 | `/api/impact` | GET | Get estimated impact and comparison |
+| `/api/benchmark` | GET | Compare baseline and optimized configurations across four simulated workload scenarios |
 | `/api/autopilot/run` | POST | Run a one-shot optimization/control cycle |
 | `/api/autopilot` | POST | Run a one-shot autopilot action |
 | `/api/autopilot/start` | POST | Start continuous autopilot |
@@ -184,7 +186,8 @@ Additional monitoring endpoints are documented in Swagger UI.
 2. Start the simulation and observe the live telemetry.
 3. Trigger a traffic spike and watch request rate, utilization, power, temperature, latency, and SLA status change.
 4. Run **Autopilot** to evaluate alternatives and apply a suitable simulated configuration.
-5. Compare the current and optimized configuration and review the estimated sustainability impact.
+5. Open Optimization Center and run the scenario benchmark to compare normal, spike, peak, and recovery conditions.
+6. Compare the current and optimized configuration and review the estimated sustainability impact.
 6. Enable **Continuous** mode to demonstrate repeated workload-aware optimization with safeguards.
 7. Optionally open the quality-gate panel and demonstrate simulated threshold PASS/FAIL behavior.
 

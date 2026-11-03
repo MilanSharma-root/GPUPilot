@@ -77,7 +77,7 @@ function pct(oldValue, newValue, lowerIsBetter = true) {
 
 
 
-function App() {
+function SimulationDashboard() {
 
   const [data, setData] = useState(null)
   const [environmentMonitor, setEnvironmentMonitor] = useState(null)
@@ -91,7 +91,7 @@ function App() {
 
   const [range, setRange] = useState(30)
 
-  const initialPage = ['dashboard','optimization','alerts','hardware','settings','sustainability','fleet','workloads','analytics'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
+  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
   const [activeNav, setActiveNav] = useState(initialPage)
   const [activePage, setActivePage] = useState(initialPage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
@@ -100,7 +100,10 @@ function App() {
 
   const [interval, setIntervalValue] = useState(1)
 
+  const [benchmark, setBenchmark] = useState(null)
+  const [benchmarkLoading, setBenchmarkLoading] = useState(false)
   const [quality, setQuality] = useState(null)
+  const [qualityHistory, setQualityHistory] = useState([])
 
   const [qualityThreshold, setQualityThreshold] = useState(2)
   const [anomalyToast, setAnomalyToast] = useState(null)
@@ -132,7 +135,7 @@ function App() {
   useEffect(() => {
     const syncRoute = () => {
       const key = window.location.hash.slice(1)
-      const next = ['dashboard','optimization','alerts','hardware','settings','sustainability','fleet','workloads','analytics'].includes(key) ? key : 'dashboard'
+      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(key) ? key : 'dashboard'
       setActivePage(next)
       setActiveNav(next)
     }
@@ -233,9 +236,18 @@ function App() {
   })
 
 
+  const runBenchmark = async () => {
+    setBenchmarkLoading(true)
+    setError('')
+    try { setBenchmark(await api('/benchmark')) }
+    catch (err) { setError(err.message) }
+    finally { setBenchmarkLoading(false) }
+  }
+
   const evaluateQuality = () => run(async () => {
     const result = await api('/quality/evaluate', { method: 'POST', body: JSON.stringify({ reference_precision: 'FP16', candidate_precision: 'INT8', allowed_degradation_pct: Number(qualityThreshold) }) })
     setQuality(result)
+    setQualityHistory(items => [{ id: `${Date.now()}`, result: result.result || 'UNKNOWN', degradation: result.quality_degradation_percentage_points, threshold: result.allowed_degradation_percentage_points, reason: result.reason, evaluatedAt: new Date().toISOString() }, ...items].slice(0, 10))
   })
 
   const toggleAutopilot = () => run(() =>
@@ -374,15 +386,13 @@ function App() {
   const nav = [
     ['dashboard', 'Dashboard', LayoutDashboard],
     ['optimization', 'Optimization Center', Cpu],
-    ['quality', 'Quality Gate', ShieldCheck],
-    ['alerts', 'SLA & Alerts', AlertTriangle],
-    ['hardware', 'Hardware & Software Monitor', MonitorCog],
-    ['settings', 'Settings', SlidersHorizontal],
-    ['sustainability', 'Sustainability', Leaf],
     ['fleet', 'GPU Fleet', Server],
-    ['workloads', 'AI Workloads', Bot],
+    ['quality', 'Quality Gate', ShieldCheck],
+    ['alerts', 'Monitoring & Alerts', Activity],
     ['analytics', 'Analytics & History', History],
+    ['settings', 'Settings', SlidersHorizontal],
   ]
+
 
   const pageTitles = {
     dashboard: ['Dashboard', 'Live infrastructure health and autonomous optimization'],
@@ -392,16 +402,22 @@ function App() {
     hardware: ['Hardware & Software Monitor', 'Installed inventory and public release checks'],
     settings: ['Settings', 'Simulator cadence, controller status, and SLA configuration'],
     sustainability: ['Sustainability', 'Estimated energy efficiency and thermal impact'],
-    fleet: ['GPU Fleet', 'Live status and allocation across five simulated GPUs'],
+    fleet: ['GPU Fleet', 'Live infrastructure capacity, GPU health, utilization and workload allocation'],
     workloads: ['AI Workloads', 'Current serving demand, latency, and workload protection'],
     analytics: ['Analytics & History', 'Telemetry trends and recorded controller decisions'],
   }
 
   const go = (key) => {
     setActiveNav(key)
-    setActivePage(key)
-    window.location.hash = key
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (key === 'fleet') {
+      setActivePage('fleet')
+      window.location.hash = 'fleet'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      setActivePage(key)
+      window.location.hash = key
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
 
@@ -414,10 +430,10 @@ function App() {
 
         <div className="brand">
 
-          <div className="brand-mark"><Leaf size={27} strokeWidth={2.3}/></div>
+          <div className="brand-mark"><img src="/gpupilot-logo.svg" alt="GPUPilot logo" /></div>
 
           <div className="brand-copy"><div className="brand-name">GPUPilot</div><div className="brand-sub">Sustainable AI Infrastructure</div></div>
-          <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}>{sidebarCollapsed ? '›' : '‹'}</button>
+          
 
         </div>
 
@@ -425,7 +441,7 @@ function App() {
 
         <nav className="side-nav">
 
-          {nav.map(([key, label, Icon, id]) => (
+          {nav.map(([key, label, Icon]) => (
 
             <button key={key} title={label} aria-label={label} className={`nav-item ${activeNav === key ? 'active' : ''}`} onClick={() => go(key)}>
 
@@ -434,7 +450,6 @@ function App() {
             </button>
 
           ))}
-
 
 
         </nav>
@@ -456,14 +471,14 @@ function App() {
 
           </button>
 
-          <button className="side-action primary" title="Start simulation" onClick={start} disabled={busy}><Play size={17} fill="currentColor"/>Start Simulation</button>
-          <button className="side-action stop" title="Stop simulation" onClick={stop} disabled={busy}><Square size={15}/>Stop Simulation</button>
+          <button className="side-action primary" title="Start simulation" onClick={start} disabled={busy}><Play size={17} fill="currentColor"/><span className="side-action-label">Start Simulation</span></button>
+          <button className="side-action stop" title="Stop simulation" onClick={stop} disabled={busy}><Square size={15}/><span className="side-action-label">Stop Simulation</span></button>
 
-          <button className="side-action warning side-spike-trigger" onClick={triggerAnomalySpike} disabled={busy}><Zap size={17} fill="currentColor"/>Trigger Anomaly Spike</button>
+          <button className="side-action warning side-spike-trigger" onClick={triggerAnomalySpike} disabled={busy}><Zap size={17} fill="currentColor"/><span className="side-action-label">Trigger Anomaly Spike</span></button>
 
-          <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/>Manual Spike</button>
+          <button className="side-action manual-spike-trigger" onClick={triggerManualSpike} disabled={busy}><Zap size={17}/><span className="side-action-label">Manual Spike</span></button>
 
-          <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/>Reset</button>
+          <button className="side-action reset" onClick={reset} disabled={busy}><RotateCcw size={17}/><span className="side-action-label">Reset</span></button>
 
           <div className="last-run">Last simulation<br/><b>{running ? 'Live' : 'Idle'}</b></div>
 
@@ -479,9 +494,9 @@ function App() {
 
           <div>
 
-            <h1>{pageTitles[activePage]?.[0] || 'Dashboard'}</h1>
+            <h1>{pageTitles[activePage]?.[0] || (activePage === 'workspace' ? 'Secondary Workspace' : 'Dashboard')}</h1>
 
-            <p>{pageTitles[activePage]?.[1] || 'Live infrastructure health and autonomous optimization'}</p>
+            <p>{pageTitles[activePage]?.[1] || (activePage === 'workspace' ? 'Workloads, decision history, and configuration settings' : 'Live infrastructure health and autonomous optimization')}</p>
 
           </div>
 
@@ -499,7 +514,136 @@ function App() {
 
         </header>
 
+        {activePage === 'optimization' && (
+          <section className="benchmark-page">
+            <div className="benchmark-hero">
+              <div><span className="eyebrow">OPTIMIZATION LAB</span><h2>Scenario Benchmark</h2><p>Compare the current configuration with GPUPilot's best SLA-feasible configuration across four workload conditions.</p></div>
+              <button onClick={runBenchmark} disabled={benchmarkLoading}>{benchmarkLoading ? 'Running benchmark…' : 'Run Scenario Benchmark'}</button>
+            </div>
+            <div className="benchmark-note"><strong>Simulation benchmark</strong><span>Uses steady-state model estimates. It does not change the live simulation or represent measured physical GPU results.</span></div>
+            {benchmark?.scenarios?.length ? <div className="benchmark-grid">
+              {benchmark.scenarios.map(s => <article className="benchmark-card" key={s.name}>
+                <div className="benchmark-card-head"><div><span>{s.name.toUpperCase()} SCENARIO</span><h3>{fmt(s.request_rate)} req/min</h3><p>{s.description}</p></div><b>{s.feasible_candidates} feasible</b></div>
+                <div className="benchmark-metrics">
+                  <div><small>Power</small><strong>{fmt(s.baseline.power_w,1)} <i>→</i> {fmt(s.optimized.power_w,1)} W</strong><em>{fmt(s.power_change_pct,1)}% change</em></div>
+                  <div><small>P95 latency</small><strong>{fmt(s.baseline.p95_latency_ms,1)} <i>→</i> {fmt(s.optimized.p95_latency_ms,1)} ms</strong><em>{s.optimized.sla_status} SLA</em></div>
+                  <div><small>Throughput</small><strong>{fmt(s.baseline.throughput_req_min)} <i>→</i> {fmt(s.optimized.throughput_req_min)} req/min</strong><em>Optimized estimate</em></div>
+                  <div><small>Energy / 1,000 requests</small><strong>{fmt(s.baseline.energy_wh_per_1000_requests,3)} <i>→</i> {fmt(s.optimized.energy_wh_per_1000_requests,3)} Wh</strong><em>{fmt(s.energy_change_pct,1)}% change</em></div>
+                </div>
+                <div className="benchmark-card-foot"><span>{s.candidates_considered} candidates · {s.rejected_candidates} filtered</span><span>Selected: {s.configuration.precision} · batch {s.configuration.batch_size} · {s.configuration.gpu_allocation * s.configuration.replicas} GPU(s)</span></div>
+              </article>)}
+            </div> : <div className="benchmark-empty">Run the benchmark to compare normal, spike, peak and recovery workloads.</div>}
+            {benchmark?.disclaimer && <p className="benchmark-disclaimer">{benchmark.disclaimer}</p>}
+          </section>
+        )}
 
+        {activePage === 'analytics' && (
+          <section className="analytics-page">
+            <div className="analytics-hero">
+              <div><span className="eyebrow">PERFORMANCE INSIGHTS</span><h2>Telemetry Analytics &amp; Decision History</h2><p>Explore GPU performance trends, resource behaviour and optimization decisions recorded by GPUPilot.</p></div>
+              <label className="analytics-range">Time range<select value={range} onChange={e => setRange(Number(e.target.value))}><option value="5">Last 5 minutes</option><option value="15">Last 15 minutes</option><option value="30">Last 30 minutes</option><option value="60">Last 1 hour</option></select></label>
+            </div>
+            <div className="analytics-summary-grid">
+              <article className="analytics-stat"><span>Telemetry Samples</span><strong>{visibleHistory.length}</strong><small>Samples in selected range</small></article>
+              <article className="analytics-stat"><span>Average GPU Power</span><strong>{visibleHistory.length ? fmt(visibleHistory.reduce((sum,row)=>sum+(Number(row.total_power)||0),0)/visibleHistory.length,1) : '—'} <small>W</small></strong><small>Across recorded samples</small></article>
+              <article className="analytics-stat"><span>Average Temperature</span><strong>{visibleHistory.length ? fmt(visibleHistory.reduce((sum,row)=>sum+(Number(row.temperature)||0),0)/visibleHistory.length,1) : '—'} <small>°C</small></strong><small>Across recorded samples</small></article>
+              <article className="analytics-stat"><span>Controller Events</span><strong>{(data?.recent_events || []).length}</strong><small>Events currently retained by backend</small></article>
+            </div>
+            <section className="analytics-card">
+              <div className="analytics-card-head"><div><h3><Activity size={17}/> GPU Power Trend</h3><p>Total cluster power consumption over time</p></div><span>{running ? 'LIVE DATA' : 'RECORDED DATA'}</span></div>
+              <div className="analytics-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{top:8,right:14,left:0,bottom:0}}><defs><linearGradient id="analyticsPowerFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2684d8" stopOpacity={.22}/><stop offset="100%" stopColor="#2684d8" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={38}/><YAxis/><Tooltip formatter={v=>[`${fmt(v,1)} W`,'GPU Power']}/><Area type="monotone" dataKey="power" stroke="#2684d8" strokeWidth={2} fill="url(#analyticsPowerFill)" isAnimationActive={false}/></AreaChart></ResponsiveContainer></div>
+            </section>
+            <div className="analytics-chart-grid">
+              <section className="analytics-card"><div className="analytics-card-head"><div><h3><Thermometer size={17}/> Temperature Trend</h3><p>Average GPU thermal load</p></div></div><div className="analytics-chart small"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{top:8,right:12,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={35}/><YAxis/><Tooltip formatter={v=>[`${fmt(v,1)} °C`,'Temperature']}/><Line type="monotone" dataKey="temperature" stroke="#e28a32" strokeWidth={2} dot={false} isAnimationActive={false}/></LineChart></ResponsiveContainer></div></section>
+              <section className="analytics-card"><div className="analytics-card-head"><div><h3><Zap size={17}/> Request Rate Trend</h3><p>Incoming request volume over time</p></div></div><div className="analytics-chart small"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{top:8,right:12,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 4"/><XAxis dataKey="time" minTickGap={35}/><YAxis/><Tooltip formatter={v=>[`${fmt(v)} req/min`,'Request rate']}/><Line type="monotone" dataKey="requestRate" stroke="#159b75" strokeWidth={2} dot={false} isAnimationActive={false}/></LineChart></ResponsiveContainer></div></section>
+            </div>
+            <section className="analytics-card analytics-history-card">
+              <div className="analytics-card-head"><div><h3><History size={17}/> Optimization &amp; Controller History</h3><p>Recorded actions, configuration changes and simulator events</p></div><span>{(data?.recent_events || []).length} EVENTS</span></div>
+              <div className="analytics-history-list">
+                {(data?.recent_events || []).slice().reverse().map((event,i)=><article className="analytics-history-row" key={`${event.timestamp}-${i}`}><span className={`analytics-history-dot ${event.type || ''}`}/><div><strong>{event.title || String(event.event || 'System event').replaceAll('_',' ')}</strong><p>{event.message || 'No additional details recorded.'}</p></div><time>{event.timestamp ? toLocalDate(event.timestamp).toLocaleString() : '—'}</time></article>)}
+                {!data?.recent_events?.length && <div className="analytics-empty">No controller history is available yet. Start the simulator to record telemetry and optimization events.</div>}
+              </div>
+            </section>
+          </section>
+        )}
+
+        {activePage === 'alerts' && (
+          <section className="monitoring-page">
+            <div className="monitoring-hero">
+              <div><span className="eyebrow">SYSTEM OBSERVABILITY</span><h2>SLA &amp; Alert Center</h2><p>Track service-level compliance, telemetry anomalies and recent controller events in one place.</p></div>
+              <span className={`monitoring-overall ${slaPass ? 'healthy' : slaStatusAvailable ? 'attention' : 'unknown'}`}><i/>{!slaStatusAvailable ? 'Awaiting SLA data' : slaPass ? 'SLA Compliant' : 'SLA Breached'}</span>
+            </div>
+            <div className="monitoring-summary-grid">
+              <article className={`monitoring-stat ${p95State}`}><span>P95 Latency</span><strong>{p95Available ? fmt(p95Latency,1) : '—'} <small>ms</small></strong><p>Configured limit: {Number.isFinite(p95Limit) ? fmt(p95Limit,1) + ' ms' : 'Not available'}</p></article>
+              <article className="monitoring-stat"><span>Throughput</span><strong>{fmt(telemetry?.throughput ?? telemetry?.request_rate)} <small>req/min</small></strong><p>Live serving throughput</p></article>
+              <article className="monitoring-stat"><span>GPU Temperature</span><strong>{fmt(telemetry?.temperature,1)} <small>°C</small></strong><p>Current average temperature</p></article>
+              <article className="monitoring-stat"><span>Telemetry Anomaly</span><strong className="monitoring-anomaly-value">{data?.anomaly?.status || 'WAITING'}</strong><p>{data?.anomaly?.severity ? `Severity: ${data.anomaly.severity}` : 'Anomaly detector status'}</p></article>
+            </div>
+            <div className="monitoring-content-grid">
+              <section className="monitoring-card">
+                <div className="monitoring-card-head"><div><h3><ShieldCheck size={17}/> SLA Compliance</h3><p>Backend-reported service-level evaluation</p></div><span className={`monitoring-result-pill ${slaPass ? 'pass' : slaStatusAvailable ? 'fail' : 'pending'}`}>{data?.sla?.status || 'PENDING'}</span></div>
+                <div className="monitoring-sla-row"><span>P95 latency</span><strong>{p95Available ? `${fmt(p95Latency,1)} / ${fmt(p95Limit,1)} ms` : 'No data'}</strong><span className={p95State}>{p95State.toUpperCase()}</span></div>
+                <div className="monitoring-sla-row"><span>Minimum throughput</span><strong>{fmt(data?.sla?.configuration?.min_throughput_req_min)} req/min</strong><span>{telemetry?.throughput != null || telemetry?.request_rate != null ? 'LIVE' : 'NO DATA'}</span></div>
+                <div className="monitoring-sla-row"><span>Temperature</span><strong>{fmt(telemetry?.temperature,1)} °C</strong><span>{telemetry?.temperature != null ? 'LIVE' : 'NO DATA'}</span></div>
+                <p className="monitoring-footnote">Overall PASS/FAIL is supplied by the backend SLA evaluator. Individual metrics are shown as telemetry context.</p>
+              </section>
+              <section className="monitoring-card">
+                <div className="monitoring-card-head"><div><h3><Activity size={17}/> Telemetry Anomaly</h3><p>Live anomaly detection from the simulator</p></div><span className={`monitoring-result-pill ${data?.anomaly?.status === 'DETECTED' ? 'fail' : data?.anomaly?.status === 'RECOVERING' ? 'pending' : 'pass'}`}>{data?.anomaly?.status || 'WAITING'}</span></div>
+                <p className="monitoring-anomaly-reason">{data?.anomaly?.reason || 'Waiting for telemetry samples to establish a baseline.'}</p>
+                <div className="monitoring-anomaly-meta"><span>Severity</span><strong>{data?.anomaly?.severity || '—'}</strong></div>
+                <div className="monitoring-anomaly-meta"><span>Affected metrics</span><strong>{(data?.anomaly?.metrics || []).join(', ') || 'None reported'}</strong></div>
+                <div className="monitoring-anomaly-meta"><span>Last detected</span><strong>{data?.anomaly?.last_detected_at ? toLocalDate(data.anomaly.last_detected_at).toLocaleString() : '—'}</strong></div>
+              </section>
+            </div>
+            <section className="monitoring-card monitoring-events-card">
+              <div className="monitoring-card-head"><div><h3><History size={17}/> Recent Alerts &amp; Events</h3><p>Latest events recorded by the simulator and controller</p></div><span className="monitoring-event-count">{(data?.recent_events || []).length} recorded</span></div>
+              <div className="monitoring-event-list">
+                {(data?.recent_events || []).slice().reverse().slice(0,12).map((event,i) => <article className="monitoring-event" key={`${event.timestamp}-${i}`}><span className={`monitoring-event-dot ${event.type || ''}`}/><div className="monitoring-event-copy"><strong>{event.title || String(event.event || 'System event').replaceAll('_',' ')}</strong><p>{event.message || 'No additional event details supplied.'}</p></div><time>{event.timestamp ? toLocalDate(event.timestamp).toLocaleString() : '—'}</time></article>)}
+                {!data?.recent_events?.length && <div className="monitoring-empty">No alerts or controller events recorded yet. Start the simulation to begin monitoring.</div>}
+              </div>
+            </section>
+          </section>
+        )}
+
+        {activePage === 'fleet' && (
+          <section className="fleet-page">
+            <div className="fleet-page-toolbar">
+              <div><span className="eyebrow">INFRASTRUCTURE OVERVIEW</span><h2>GPU Resource Pool</h2><p>Live health, utilization and allocation across the simulated GPU cluster.</p></div>
+              <span className={`fleet-live-state ${running ? 'online' : 'idle'}`}><i/>{running ? 'Live telemetry' : 'Simulation idle'}</span>
+            </div>
+            <div className="fleet-kpi-grid">
+              <div className="fleet-kpi"><span>Total GPU Capacity</span><strong>{data?.cluster?.gpu_count ?? 5}</strong><small>Devices in resource pool</small></div>
+              <div className="fleet-kpi"><span>Active GPUs</span><strong>{(data?.cluster?.gpus || []).filter(g => ['Active','Overloaded'].includes(g.status)).length}</strong><small>Currently serving workloads</small></div>
+              <div className="fleet-kpi"><span>Idle GPUs</span><strong>{(data?.cluster?.gpus || []).filter(g => g.status === 'Idle').length}</strong><small>Available for allocation</small></div>
+              <div className="fleet-kpi"><span>Cluster Power</span><strong>{fmt((data?.cluster?.gpus || []).reduce((sum,g) => sum + (Number(g.power)||0),0),1)} <small>W</small></strong><small>Combined GPU power draw</small></div>
+            </div>
+            <div className="fleet-section-heading"><div><h3>GPU Devices</h3><p>Per-device telemetry and resource consumption</p></div><span>{(data?.cluster?.gpus || []).length} / {data?.cluster?.gpu_count ?? 5} reporting</span></div>
+            <div className="fleet-device-grid">
+              {(data?.cluster?.gpus || []).map(g => {
+                const status = g.status || (g.active ? 'Active' : 'Idle')
+                const utilization = Math.max(0, Math.min(100, Number(g.utilization) || 0))
+                const memoryPct = Math.max(0, Math.min(100, 100 * (Number(g.memory)||0) / (Number(g.memory_capacity)||24)))
+                return <article className={`fleet-device-card status-${String(status).toLowerCase()}`} key={g.id}>
+                  <div className="fleet-device-head"><div className="fleet-device-icon"><Cpu size={20}/></div><div><strong>{g.id}</strong><span>{g.model || 'GPU accelerator'}</span></div><Pill pass={status === 'Active'}>{status}</Pill></div>
+                  <div className="fleet-utilization"><div><span>GPU Utilization</span><strong>{fmt(utilization)}%</strong></div><div className="fleet-progress"><i style={{width:`${utilization}%`}}/></div></div>
+                  <div className="fleet-device-metrics">
+                    <div><span>Power Draw</span><strong>{fmt(g.power,1)} W</strong></div>
+                    <div><span>Temperature</span><strong>{fmt(g.temperature,1)} °C</strong></div>
+                    <div><span>Memory Usage</span><strong>{fmt(g.memory,1)} / {fmt(g.memory_capacity,0)} GB</strong></div>
+                  </div>
+                  <div className="fleet-memory"><div className="fleet-progress"><i style={{width:`${memoryPct}%`}}/></div><span>{fmt(memoryPct)}% memory used</span></div>
+                  <div className="fleet-assignment"><span>Assigned Workload</span><strong>{g.workload || 'No workload assigned'}</strong></div>
+                </article>
+              })}
+              {!data?.cluster?.gpus?.length && <div className="empty">Waiting for GPU fleet telemetry. Start the simulator to populate device metrics.</div>}
+            </div>
+            <div className="fleet-section-heading"><div><h3>Workload Allocation</h3><p>Current demand mapped to the serving cluster</p></div></div>
+            <div className="fleet-workload-list">
+              {(data?.workloads || []).map(w => <div className="fleet-workload-row" key={w.id}><div className="fleet-workload-name"><strong>{w.name}</strong><span>{w.model}</span></div><div><strong>{fmt(w.requests_per_min)}</strong><span>Requests / min</span></div><div><strong>{fmt(w.latency_ms,0)} ms</strong><span>Latency</span></div><Pill pass={String(w.status || '').includes('Protected')}>{w.status || 'Running'}</Pill></div>)}
+              {!data?.workloads?.length && <div className="empty">No active workloads are currently reported.</div>}
+            </div>
+          </section>
+        )}
 
         {error && <div className="error-banner"><AlertTriangle size={17}/><span>Backend connection: {error}</span><button onClick={refresh}>Retry</button></div>}
         {anomalyToast && <div className="anomaly-toast" role="alert" aria-live="assertive"><AlertTriangle size={16}/><span>{anomalyToast.text}</span><button onClick={() => setAnomalyToast(null)} aria-label="Dismiss alert">×</button></div>}
@@ -708,25 +852,42 @@ function App() {
 
 
 
-        <section className="panel quality-panel" id="precision-quality">
-          <div className="panel-header">
-            <div><h2>FP16 vs INT8 Quality Gate</h2><p>Simulated quality evaluation · no real model or dataset is loaded</p></div>
-            <span className={`quality-pill ${(quality?.result || 'READY') === 'PASS' ? 'pass' : (quality?.result === 'FAIL' ? 'fail' : '')}`}>{quality?.result || 'READY'}</span>
+        {activePage === 'quality' && <section className="quality-page">
+          <div className="quality-page-heading">
+            <div><span className="quality-eyebrow">MODEL VALIDATION</span><h2>Precision Quality Gate</h2><p>Evaluate whether INT8 maintains acceptable model quality against the FP16 baseline.</p></div>
+            <span className={`quality-pill ${quality?.result === 'PASS' ? 'pass' : quality?.result === 'FAIL' ? 'fail' : ''}`}>{quality?.result || 'NOT RUN'}</span>
           </div>
-          <div className="quality-controls">
-            <label>Allowed degradation (percentage points)
-              <input type="number" min="0" max="100" step="0.1" value={qualityThreshold} onChange={e => setQualityThreshold(e.target.value)} />
-            </label>
-            <button onClick={evaluateQuality} disabled={busy}>Evaluate FP16 → INT8</button>
+          {error && <div className="error-banner"><AlertTriangle size={17}/><span>Quality evaluation: {error}</span><button onClick={evaluateQuality}>Retry</button></div>}
+          <div className="quality-summary-grid">
+            <div className="quality-summary-card"><span>Gate status</span><strong className={quality?.result === 'PASS' ? 'quality-good' : quality?.result === 'FAIL' ? 'quality-bad' : ''}>{quality?.result || 'Pending'}</strong><small>{quality ? 'Latest evaluation' : 'Run an evaluation to generate a decision'}</small></div>
+            <div className="quality-summary-card"><span>Quality degradation</span><strong>{quality ? `${fmt(quality.quality_degradation_percentage_points, 2)} pp` : '—'}</strong><small>FP16 baseline vs INT8 candidate</small></div>
+            <div className="quality-summary-card"><span>Allowed degradation</span><strong>{quality ? `${fmt(quality.allowed_degradation_percentage_points, 2)} pp` : `${fmt(qualityThreshold, 1)} pp`}</strong><small>Configured acceptance threshold</small></div>
           </div>
-          {quality && <div className="quality-results">
-            <div><span>FP16 baseline</span><strong>{fmt(quality.baseline_quality_score, 2)}</strong></div>
-            <div><span>INT8 candidate</span><strong>{fmt(quality.candidate_quality_score, 2)}</strong></div>
-            <div><span>Degradation</span><strong>{fmt(quality.quality_degradation_percentage_points, 2)} pp</strong></div>
-            <div><span>Threshold</span><strong>{fmt(quality.allowed_degradation_percentage_points, 2)} pp</strong></div>
-            <p>{quality.reason} <small>{quality.disclaimer}</small></p>
-          </div>}
-        </section>
+          <div className="panel quality-evaluation-panel">
+            <div className="panel-header"><div><h3>Run Quality Evaluation</h3><p>Uses the existing backend quality evaluation endpoint.</p></div></div>
+            <div className="quality-controls">
+              <label>Allowed degradation (percentage points)
+                <input type="number" min="0" max="100" step="0.1" value={qualityThreshold} onChange={e => setQualityThreshold(e.target.value)} />
+              </label>
+              <button onClick={evaluateQuality} disabled={busy || qualityThreshold === '' || Number(qualityThreshold) < 0 || Number(qualityThreshold) > 100}>{busy ? 'Evaluating…' : 'Evaluate FP16 → INT8'}</button>
+            </div>
+          </div>
+          <div className="panel quality-checks-panel">
+            <div className="panel-header"><div><h3>Validation Checks</h3><p>Checks are populated from the latest backend evaluation.</p></div></div>
+            <div className="quality-check-list">
+              {[
+                {label:'FP16 baseline available',ok:!!quality && Number.isFinite(Number(quality.baseline_quality_score)),detail:quality ? `Baseline score: ${fmt(quality.baseline_quality_score, 2)}` : 'Awaiting evaluation'},
+                {label:'INT8 candidate available',ok:!!quality && Number.isFinite(Number(quality.candidate_quality_score)),detail:quality ? `Candidate score: ${fmt(quality.candidate_quality_score, 2)}` : 'Awaiting evaluation'},
+                {label:'Quality degradation within threshold',ok:quality?.result === 'PASS',detail:quality ? `${fmt(quality.quality_degradation_percentage_points, 2)} pp observed · ${fmt(quality.allowed_degradation_percentage_points, 2)} pp allowed` : 'Awaiting evaluation'}
+              ].map((check,i)=><div className="quality-check-row" key={check.label}><span className={`quality-check-icon ${!quality ? 'pending' : check.ok ? 'pass' : 'fail'}`}>{!quality ? '–' : check.ok ? '✓' : '!'}</span><div><strong>{check.label}</strong><small>{check.detail}</small></div><b className={!quality ? 'pending' : check.ok ? 'pass' : 'fail'}>{!quality ? 'PENDING' : check.ok ? 'PASS' : 'FAIL'}</b></div>)}
+            </div>
+            {quality?.reason && <div className={`quality-decision-note ${quality.result === 'PASS' ? 'pass' : 'fail'}`}><strong>{quality.result === 'PASS' ? 'Gate passed' : 'Gate failed'}</strong><p>{quality.reason}</p>{quality.disclaimer && <small>{quality.disclaimer}</small>}</div>}
+          </div>
+          <div className="panel quality-history-panel">
+            <div className="panel-header"><div><h3>Validation History</h3><p>Recent quality gate evaluations in this session.</p></div><span>{qualityHistory.length} runs</span></div>
+            {qualityHistory.length ? <div className="quality-history-list">{qualityHistory.map(item=><div className="quality-history-row" key={item.id}><div><strong>{item.result}</strong><small>{new Date(item.evaluatedAt).toLocaleString()}</small></div><span>{fmt(item.degradation,2)} pp degradation</span><span>{fmt(item.threshold,2)} pp threshold</span><b className={item.result === 'PASS' ? 'pass' : 'fail'}>{item.result}</b></div>)}</div> : <div className="quality-history-empty">No validation runs yet. Run an evaluation to create the first history entry.</div>}
+          </div>
+        </section>}
 
 
         <section className="sustainability panel">
@@ -832,29 +993,35 @@ function App() {
 
 
 
-        {(settingsOpen || activePage === 'settings') && <section className="settings-panel panel" id="settings">
-
-          <div className="panel-header simple"><div><h2><SlidersHorizontal size={19}/> Settings</h2><p>Only controls that affect the supplied simulator are exposed.</p></div><button className="close-btn" onClick={()=>setSettingsOpen(false)}>Close</button></div>
-
-          <div className="settings-grid">
-
-            <label>Simulation tick interval
-
-              <select value={interval} onChange={e=>setIntervalValue(Number(e.target.value))}>
-
-                <option value="0.5">0.5 seconds</option><option value="1">1 second</option><option value="2">2 seconds</option><option value="5">5 seconds</option>
-
-              </select>
-
-            </label>
-
-            <div className="setting-state"><span>Autonomous controller</span><b>{auto ? 'Enabled' : 'Disabled'}</b><button onClick={toggleAutopilot}>{auto ? 'Stop' : 'Start'}</button></div>
-
-            <div className="setting-state"><span>Configured SLA</span><b>{data?.sla?.configuration?.max_latency_ms ?? '—'} ms max P95 latency</b><small>{data?.sla?.configuration?.min_throughput_req_min ?? '—'} req/min minimum throughput</small></div>
-
-          </div>
-
-        </section>}
+        {activePage === 'settings' && (
+          <section className="settings-page">
+            <div className="settings-intro"><div><span className="eyebrow">CONFIGURATION</span><h2>Simulation Settings</h2><p>Manage simulator behaviour and autonomous optimization preferences. SLA values are shown from the backend configuration.</p></div><span className="settings-status"><i/>{running ? 'Simulator running' : 'Simulator stopped'}</span></div>
+            <div className="settings-layout">
+              <section className="settings-card">
+                <div className="settings-card-heading"><span className="settings-icon"><SlidersHorizontal size={18}/></span><div><h3>Simulation Configuration</h3><p>Control the telemetry sampling interval used when starting the simulator.</p></div></div>
+                <label className="settings-field">Simulation tick interval
+                  <select value={interval} onChange={e=>setIntervalValue(Number(e.target.value))}>
+                    <option value="0.5">0.5 seconds — Fast</option><option value="1">1 second — Balanced</option><option value="2">2 seconds — Relaxed</option><option value="5">5 seconds — Low frequency</option>
+                  </select>
+                  <small>Applies the next time you start or restart the simulation.</small>
+                </label>
+                <div className="settings-current-row"><span>Current simulator status</span><strong>{running ? 'Running' : 'Stopped'}</strong></div>
+                <div className="settings-action-row"><button className="settings-primary" onClick={start} disabled={busy || running}><Play size={15}/>Start Simulation</button><button className="settings-secondary" onClick={stop} disabled={busy || !running}><Square size={14}/>Stop Simulation</button></div>
+              </section>
+              <section className="settings-card">
+                <div className="settings-card-heading"><span className="settings-icon"><Cpu size={18}/></span><div><h3>Autonomous Controller</h3><p>Allow GPUPilot to evaluate telemetry and apply optimization decisions automatically.</p></div></div>
+                <div className="settings-controller-state"><div><strong>{auto ? 'Autonomous Mode Enabled' : 'Autonomous Mode Disabled'}</strong><span>{auto ? 'Controller is active and monitoring the running environment.' : 'Manual optimization mode. Enable AutoPilot to automate decisions.'}</span></div><span className={`settings-state-pill ${auto ? 'on' : 'off'}`}>{auto ? 'ON' : 'OFF'}</span></div>
+                <button className={`settings-toggle-button ${auto ? 'enabled' : ''}`} onClick={toggleAutopilot} disabled={busy}><Cpu size={15}/>{auto ? 'Disable Autonomous Mode' : 'Enable Autonomous Mode'}</button>
+              </section>
+              <section className="settings-card settings-sla-card">
+                <div className="settings-card-heading"><span className="settings-icon"><ShieldCheck size={18}/></span><div><h3>Service Level Configuration</h3><p>Current SLA thresholds supplied by the backend.</p></div></div>
+                <div className="settings-config-row"><span>Maximum P95 latency</span><strong>{data?.sla?.configuration?.max_latency_ms ?? '—'} <small>ms</small></strong></div>
+                <div className="settings-config-row"><span>Minimum throughput</span><strong>{data?.sla?.configuration?.min_throughput_req_min ?? '—'} <small>req/min</small></strong></div>
+                <div className="settings-readonly-note"><ShieldCheck size={14}/> SLA thresholds are read-only in this interface.</div>
+              </section>
+            </div>
+          </section>
+        )}
 
 
 
@@ -868,6 +1035,11 @@ function App() {
 }
 
 
+
+
+function App() {
+  return <SimulationDashboard />;
+}
 
 function Kpi({icon:Icon,label,value,unit,tone,history,dataKey,simple=false}) {
 

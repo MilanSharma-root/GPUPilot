@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import config as cfg
 from engine.controller import GPUPilotController
 from engine.optimizer import GPUPilotOptimizer
+from engine.benchmark import run_scenario_benchmarks
 from engine.predictor import GPUPilotPredictor
 from engine.sustainability import DEFAULT_ENV, compare_impact, estimate_impact
 from models import (ComparisonResponse, Configuration, ConfigurationResponse,
@@ -719,6 +720,12 @@ def _optimization_reasons(result):
         reasons.append("Current configuration is already the best feasible operating point for the current workload.")
 
     return reasons[:4]
+
+
+@app.get("/api/benchmark")
+async def benchmark_scenarios():
+    """Compare baseline and optimized configurations across standard workload scenarios."""
+    return run_scenario_benchmarks(sim, optimizer)
 
 
 @app.get("/api/dashboard")
