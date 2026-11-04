@@ -80,6 +80,7 @@ function pct(oldValue, newValue, lowerIsBetter = true) {
 function SimulationDashboard() {
 
   const [data, setData] = useState(null)
+  const [crossWorkloadPlan, setCrossWorkloadPlan] = useState(null)
   const [environmentMonitor, setEnvironmentMonitor] = useState(null)
   const [environmentScanning, setEnvironmentScanning] = useState(false)
 
@@ -91,7 +92,7 @@ function SimulationDashboard() {
 
   const [range, setRange] = useState(30)
 
-  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
+  const initialPage = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace','crossworkload'].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard'
   const [activeNav, setActiveNav] = useState(initialPage)
   const [activePage, setActivePage] = useState(initialPage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
@@ -118,6 +119,7 @@ function SimulationDashboard() {
 
       const next = await api('/dashboard')
       setData(next)
+      try { setCrossWorkloadPlan(await api('/cross-workload/plan')) } catch { setCrossWorkloadPlan(null) }
       // Keep the TinyFish monitor independent so a missing API key never breaks the main dashboard.
       try { setEnvironmentMonitor(await api('/environment/monitor')) } catch { /* optional panel */ }
       setError('')
@@ -135,7 +137,7 @@ function SimulationDashboard() {
   useEffect(() => {
     const syncRoute = () => {
       const key = window.location.hash.slice(1)
-      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace'].includes(key) ? key : 'dashboard'
+      const next = ['dashboard','optimization','quality','alerts','hardware','settings','sustainability','fleet','workloads','analytics','workspace','crossworkload'].includes(key) ? key : 'dashboard'
       setActivePage(next)
       setActiveNav(next)
     }
@@ -387,6 +389,7 @@ function SimulationDashboard() {
     ['dashboard', 'Dashboard', LayoutDashboard],
     ['optimization', 'Optimization Center', Cpu],
     ['fleet', 'GPU Fleet', Server],
+    ['crossworkload', 'Cross-Workload AI', Cpu],
     ['quality', 'Quality Gate', ShieldCheck],
     ['alerts', 'Monitoring & Alerts', Activity],
     ['analytics', 'Analytics & History', History],
@@ -403,23 +406,17 @@ function SimulationDashboard() {
     settings: ['Settings', 'Simulator cadence, controller status, and SLA configuration'],
     sustainability: ['Sustainability', 'Estimated energy efficiency and thermal impact'],
     fleet: ['GPU Fleet', 'Live infrastructure capacity, GPU health, utilization and workload allocation'],
+    crossworkload: ['Cross-Workload AI', 'Priority-aware fractional GPU sharing across multiple simulated AI workloads'],
     workloads: ['AI Workloads', 'Current serving demand, latency, and workload protection'],
     analytics: ['Analytics & History', 'Telemetry trends and recorded controller decisions'],
   }
 
   const go = (key) => {
     setActiveNav(key)
-    if (key === 'fleet') {
-      setActivePage('fleet')
-      window.location.hash = 'fleet'
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      setActivePage(key)
-      window.location.hash = key
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    setActivePage(key)
+    window.location.hash = key
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
 
 
   return (
@@ -649,6 +646,8 @@ function SimulationDashboard() {
         {anomalyToast && <div className="anomaly-toast" role="alert" aria-live="assertive"><AlertTriangle size={16}/><span>{anomalyToast.text}</span><button onClick={() => setAnomalyToast(null)} aria-label="Dismiss alert">×</button></div>}
         {simulationNotice && <div className="simulation-action-notice" role="status"><Zap size={16}/><span>{simulationNotice}</span><button onClick={() => setSimulationNotice('')} aria-label="Dismiss simulation notice">×</button></div>}
 
+        {activePage === 'dashboard' && (
+          <>
         <section className={`anomaly-panel ${data?.anomaly?.status === 'DETECTED' ? 'detected' : data?.anomaly?.status === 'RECOVERING' ? 'recovering' : 'normal'}`} id="sla-anomaly">
           <div className="anomaly-icon"><AlertTriangle size={21}/></div>
           <div className="anomaly-copy">
@@ -852,6 +851,9 @@ function SimulationDashboard() {
 
 
 
+          </>
+        )}
+
         {activePage === 'quality' && <section className="quality-page">
           <div className="quality-page-heading">
             <div><span className="quality-eyebrow">MODEL VALIDATION</span><h2>Precision Quality Gate</h2><p>Evaluate whether INT8 maintains acceptable model quality against the FP16 baseline.</p></div>
@@ -890,6 +892,26 @@ function SimulationDashboard() {
         </section>}
 
 
+
+        {activePage === 'crossworkload' && (
+        <section className="panel cross-workload-panel" id="cross-workload">
+          <div className="panel-header"><div><h2><Cpu size={19}/> Cross-Workload Intelligence</h2><p>Priority-aware fractional sharing across multiple simulated AI workloads</p></div><span className="simulated-tag">SIMULATED PLAN</span></div>
+          {crossWorkloadPlan ? <>
+            <div className="cross-kpis">
+              <div><span>Workloads</span><strong>{crossWorkloadPlan.workload_count}</strong></div>
+              <div><span>GPUs allocated</span><strong>{crossWorkloadPlan.allocated_gpu_count}/{crossWorkloadPlan.gpu_count}</strong></div>
+              <div><span>Queued</span><strong>{crossWorkloadPlan.queued_workload_count}</strong></div>
+              <div><span>SLO at risk</span><strong>{crossWorkloadPlan.sla_at_risk_count}</strong></div>
+            </div>
+            <div className="cross-section-heading"><div><h3>GPU allocation</h3><p>Fractional compute sharing across the simulated fleet</p></div><span>{crossWorkloadPlan.allocated_gpu_count} of {crossWorkloadPlan.gpu_count} GPUs active</span></div><div className="cross-gpu-grid">{crossWorkloadPlan.gpus.map(g=><article className="cross-gpu" key={g.id}><div className="cross-gpu-heading"><b>{g.id}</b><span className="cross-gpu-model">{g.model}</span></div><strong className="cross-gpu-percent">{fmt(g.allocated_share_pct,1)}<small>% allocated</small></strong><div className="cross-gpu-track"><i style={{width:`${Math.max(0,Math.min(100,Number(g.allocated_share_pct)||0))}%`}}/></div><div className="cross-gpu-assigned">{g.allocations.length ? g.allocations.map(a=><span key={a.workload_id || a.workload_name}>{a.workload_name} <b>{a.share_pct}%</b></span>) : <span className="cross-idle">Idle · available</span>}</div><small className="cross-gpu-memory">{g.remaining_memory_gb} GB memory free</small></article>)}</div>
+            <div className="cross-section-heading cross-workload-heading"><div><h3>Workload placement</h3><p>Demand, estimated latency and service-level status</p></div><span>{crossWorkloadPlan.workload_count} workloads tracked</span></div><div className="cross-workload-list">{crossWorkloadPlan.workloads.map(w=><article className="cross-workload-row" key={w.id}><div className="cross-workload-name"><b>{w.name}</b><small>{w.kind} <i/> Priority {w.priority}/5</small></div><div className="cross-workload-metric"><strong>{fmt(w.demand_rpm)}</strong><small>requests / min</small></div><div className="cross-workload-metric"><strong>{fmt(w.estimated_latency_ms)}</strong><small>estimated latency · ms</small></div><span className={`cross-status ${String(w.status).toLowerCase().replaceAll(" ","-")}`}>{w.status}</span><p>{w.decision_reason}</p></article>)}</div>
+            <p className="cross-disclaimer">{crossWorkloadPlan.disclaimer}</p>
+          </> : <div className="empty">Cross-workload plan unavailable. Confirm the backend is running.</div>}
+        </section>
+        )}
+
+        {activePage === 'dashboard' && (
+          <>
         <section className="sustainability panel">
 
           <div className="panel-header simple"><div><h2><Leaf size={20}/> Sustainability Impact</h2><p>Estimated for current workload</p></div></div>
@@ -992,6 +1014,9 @@ function SimulationDashboard() {
         </section>
 
 
+
+          </>
+        )}
 
         {activePage === 'settings' && (
           <section className="settings-page">

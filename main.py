@@ -16,6 +16,7 @@ import config as cfg
 from engine.controller import GPUPilotController
 from engine.optimizer import GPUPilotOptimizer
 from engine.benchmark import run_scenario_benchmarks
+from engine.cross_workload import plan_cross_workload, DEFAULT_WORKLOADS
 from engine.predictor import GPUPilotPredictor
 from engine.sustainability import DEFAULT_ENV, compare_impact, estimate_impact
 from models import (ComparisonResponse, Configuration, ConfigurationResponse,
@@ -858,3 +859,30 @@ async def autopilot_events():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
+
+
+@app.get("/api/cross-workload/plan")
+async def cross_workload_plan():
+    """Build a simulated multi-workload allocation plan from current simulator demand."""
+    workloads = [dict(item) for item in DEFAULT_WORKLOADS]
+    rate = max(0.0, float(sim.latest.request_rate))
+    workloads[0]["demand_rpm"] = max(100, min(1800, 180 + rate * 0.38))
+    workloads[1]["demand_rpm"] = max(150, min(2400, 300 + rate * 0.22))
+    workloads[2]["demand_rpm"] = max(60, min(500, 90 + rate * 0.06))
+    workloads[3]["demand_rpm"] = max(200, min(1500, 350 + rate * 0.18))
+    try:
+        plan = plan_cross_workload(workloads)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    plan["source_workload_state"] = sim.state.value
+    plan["source_sample_id"] = sim.latest.sample_id
+    return plan
+
+
+@app.post("/api/cross-workload/plan")
+async def custom_cross_workload_plan(body: list[dict]):
+    """Evaluate custom simulated workload demands; no physical GPU action occurs."""
+    try:
+        return plan_cross_workload(body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
