@@ -1,4 +1,6 @@
 # GPUPilot 🚀
+
+🌐 **[Live Demo](https://gpu-pilot-iykrzqqsz-resonantt.vercel.app/#dashboard)** · [Backend API](https://gpupilot-backend.onrender.com/docs)
 ### Autonomous AI Workload Sustainability Controller
 
 GPUPilot is a **simulator-first, vendor-neutral prototype** that demonstrates how AI-serving workloads can be optimized by balancing GPU power, thermal conditions, memory, latency, throughput, and Service Level Agreement (SLA) requirements.
